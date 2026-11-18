@@ -1,14 +1,11 @@
-import Navbar from "./Navbar"
+import Navbar from "./Navbar";
 
 const Header = () => {
   return (
-    <header>
-        <div className="max-w-7xl mx-auto px-4">
-            <div className="">
-                <Navbar/>
-            </div>
-        </div>
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+      <Navbar />
     </header>
-  )
-}
-export default Header
+  );
+};
+
+export default Header;

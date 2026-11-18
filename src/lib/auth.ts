@@ -11,5 +11,8 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
+        // Matches the registration form rule: 6+ chars, 1 uppercase, 1 lowercase.
+        minPasswordLength: 6,
+        maxPasswordLength: 64,
     },
 });
