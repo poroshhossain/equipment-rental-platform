@@ -21,11 +21,8 @@ export const auth = betterAuth({
             role: {
                 type: "string",
                 defaultValue: "customer",
-                // Clients may pick their role at sign-up, but only customer or
-                // owner — admin can only be granted server-side (direct DB write).
-                validator: {
-                    input: z.enum(["customer", "owner"]),
-                },
+                input:false,
+                required: false,
             },
         },
     },

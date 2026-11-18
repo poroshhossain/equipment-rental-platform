@@ -25,18 +25,6 @@ import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
 
-const roleOptions = [
-  {
-    value: "customer",
-    label: "Customer",
-    description: "Rent equipment from other owners.",
-  },
-  {
-    value: "owner",
-    label: "Owner",
-    description: "List your own equipment for rent.",
-  },
-];
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -54,7 +42,6 @@ export default function RegisterForm() {
     defaultValues: {
       name: "",
       email: "",
-      role: "customer",
       photoUrl: "",
       password: "",
     },
@@ -62,7 +49,6 @@ export default function RegisterForm() {
 
   const photoUrl = useWatch({ control, name: "photoUrl" });
   const password = useWatch({ control, name: "password" });
-  const role = useWatch({ control, name: "role" });
 
   const handlePhotoChange = (value: string) => {
     setValue("photoUrl", value, { shouldValidate: Boolean(errors.photoUrl) });
@@ -73,7 +59,6 @@ export default function RegisterForm() {
       const { data, error } = await authClient.signUp.email({
         name: values.name,
         email: values.email,
-        role: values.role,
         password: values.password,
         image: values.photoUrl || undefined,
         callbackURL: "/",
@@ -131,42 +116,6 @@ export default function RegisterForm() {
           noValidate
           className="space-y-4"
         >
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Account type</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {roleOptions.map((option) => (
-                <label
-                  key={option.value}
-                  htmlFor={`role-${option.value}`}
-                  className={cn(
-                    "flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition-colors",
-                    role === option.value
-                      ? "border-brand bg-brand/5 ring-1 ring-brand/40"
-                      : "border-border hover:bg-secondary",
-                  )}
-                >
-                  <input
-                    id={`role-${option.value}`}
-                    type="radio"
-                    value={option.value}
-                    className="mt-0.5 size-4 shrink-0 accent-brand"
-                    aria-describedby={errors.role ? "role-error" : undefined}
-                    {...register("role")}
-                  />
-                  <span className="space-y-0.5">
-                    <span className="block text-sm font-semibold">
-                      {option.label}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">
-                      {option.description}
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <FieldError id="role-error" message={errors.role?.message} />
-          </fieldset>
-
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
