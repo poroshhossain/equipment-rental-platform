@@ -10,6 +10,12 @@ export const auth = betterAuth({
     database: mongodbAdapter(db, {
         client,
     }),
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        },
+    },
     emailAndPassword: {
         enabled: true,
         // Matches the registration form rule: 6+ chars, 1 uppercase, 1 lowercase.
@@ -21,7 +27,7 @@ export const auth = betterAuth({
             role: {
                 type: "string",
                 defaultValue: "customer",
-                input:false,
+                input: false,
                 required: false,
             },
         },

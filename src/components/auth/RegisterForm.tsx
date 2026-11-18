@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
+import LoginWithGoogleBtn from "./LoginWithGoogleBtn";
 
 
 export default function RegisterForm() {
@@ -194,7 +195,9 @@ export default function RegisterForm() {
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
         </form>
-
+        <p className="mt-6 text-center text-sm">
+          <LoginWithGoogleBtn />
+        </p>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
