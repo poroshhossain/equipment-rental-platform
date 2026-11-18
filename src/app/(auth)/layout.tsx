@@ -25,7 +25,7 @@ export default function AuthLayout({
       <main>
         <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:py-10">
           {/* Brand panel */}
-          <aside className="flex flex-col justify-between rounded-3xl bg-primary px-6 py-8 text-primary-foreground sm:px-10 sm:py-12">
+          <aside className=" hidden lg:flex flex-col justify-between rounded-3xl bg-primary px-6 py-8 text-primary-foreground sm:px-10 sm:py-12">
             <div className="space-y-6">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
                 <Zap className="size-3.5" />

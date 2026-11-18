@@ -33,6 +33,7 @@ export default function RegisterForm() {
     handleSubmit,
     setValue,
     control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -53,7 +54,7 @@ export default function RegisterForm() {
 
   const onSubmit = async (values: RegisterValues) => {
     try {
-      const { error } = await authClient.signUp.email({
+      const { data, error } = await authClient.signUp.email({
         name: values.name,
         email: values.email,
         password: values.password,
@@ -69,11 +70,14 @@ export default function RegisterForm() {
         return;
       }
 
-      toast.success("Account created", {
-        description: `Welcome to EquipRent, ${values.name.split(" ")[0]}!`,
-      });
-      router.push("/");
-      router.refresh();
+      if (data?.user) {
+        toast.success("Account created", {
+          description: `Welcome to EquipRent, ${values.name.split(" ")[0]}!`,
+        });
+        router.push("/");
+        reset();
+      }
+
     } catch {
       toast.error("Something went wrong", {
         description: "Please check your connection and try again.",
@@ -110,11 +114,6 @@ export default function RegisterForm() {
           noValidate
           className="space-y-4"
         >
-          <PhotoField
-            value={photoUrl}
-            error={errors.photoUrl?.message}
-            onChange={handlePhotoChange}
-          />
 
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
@@ -176,6 +175,12 @@ export default function RegisterForm() {
               <PasswordRequirements password={password ?? ""} />
             )}
           </div>
+
+          <PhotoField
+            value={photoUrl}
+            error={errors.photoUrl?.message}
+            onChange={handlePhotoChange}
+          />
 
           <Button
             type="submit"
