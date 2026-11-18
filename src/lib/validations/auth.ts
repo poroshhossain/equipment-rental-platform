@@ -24,6 +24,11 @@ export const registerSchema = z.object({
     .min(2, "Name must be at least 2 characters.")
     .max(60, "Name is too long."),
   email: emailField,
+  // The role the user registers with. Admin is intentionally not offered —
+  // it can only be granted server-side.
+  role: z.enum(["customer", "owner"], {
+    message: "Please choose an account type.",
+  }),
   photoUrl: z
     .string()
     .trim()
