@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, User } from "lucide-react";
-import { useForm, useWatch, type FieldErrors } from "react-hook-form";
-import { toast } from "sonner";
+import { Eye, EyeOff, User } from "lucide-react";
 
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
 import PhotoField from "@/components/auth/PhotoField";
@@ -18,85 +14,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { authClient } from "@/lib/auth-client";
-import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
-import LoginWithGoogleBtn from "./LoginWithGoogleBtn";
-
 
 export default function RegisterForm() {
-  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      photoUrl: "",
-      password: "",
-    },
-  });
-
-  const photoUrl = useWatch({ control, name: "photoUrl" });
-  const password = useWatch({ control, name: "password" });
-
-  const handlePhotoChange = (value: string) => {
-    setValue("photoUrl", value, { shouldValidate: Boolean(errors.photoUrl) });
-  };
-
-  const onSubmit = async (values: RegisterValues) => {
-    try {
-      const { data, error } = await authClient.signUp.email({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        image: values.photoUrl || undefined,
-        callbackURL: "/",
-      });
-
-      if (error) {
-        toast.error("Registration failed", {
-          description:
-            error.message ?? "Could not create your account. Please try again.",
-        });
-        return;
-      }
-
-      if (data?.user) {
-        toast.success("Account created", {
-          description: `Welcome to EquipRent, ${values.name.split(" ")[0]}!`,
-        });
-        router.push("/");
-        reset();
-      }
-
-    } catch {
-      toast.error("Something went wrong", {
-        description: "Please check your connection and try again.",
-      });
-    }
-  };
-
-  const onInvalid = (formErrors: FieldErrors<RegisterValues>) => {
-    if (formErrors.password?.message) {
-      toast.error("Password doesn't meet the requirements", {
-        description: formErrors.password.message,
-      });
-      return;
-    }
-
-    toast.error("Please fix the highlighted fields and try again.");
+  // Add your registration logic here (zod + better-auth sign up).
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
   };
 
   return (
@@ -112,36 +42,35 @@ export default function RegisterForm() {
       </CardHeader>
 
       <CardContent>
-        <form
-          onSubmit={handleSubmit(onSubmit, onInvalid)}
-          noValidate
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <PhotoField value={photoUrl} onChange={setPhotoUrl} />
+
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
+              name="name"
+              type="text"
               placeholder="Jane Cooper"
               autoComplete="name"
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "name-error" : undefined}
-              {...register("name")}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
             />
-            <FieldError id="name-error" message={errors.name?.message} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="jane@example.com"
               autoComplete="email"
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              {...register("email")}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
             />
-            <FieldError id="email-error" message={errors.email?.message} />
           </div>
 
           <div className="space-y-2">
@@ -149,15 +78,16 @@ export default function RegisterForm() {
             <div className="relative">
               <Input
                 id="password"
+                name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a password"
+                placeholder="Create a strong password"
                 autoComplete="new-password"
                 className="pr-10"
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={
-                  errors.password ? "password-error" : undefined
-                }
-                {...register("password")}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                minLength={6}
+                maxLength={64}
               />
               <button
                 type="button"
@@ -172,32 +102,15 @@ export default function RegisterForm() {
                 )}
               </button>
             </div>
-            <FieldError id="password-error" message={errors.password?.message} />
-            {(password?.length > 0 || errors.password) && (
-              <PasswordRequirements password={password ?? ""} />
-            )}
+
+            <PasswordRequirements password={password} />
           </div>
 
-          <PhotoField
-            value={photoUrl}
-            error={errors.photoUrl?.message}
-            onChange={handlePhotoChange}
-          />
-
-          <Button
-            type="submit"
-            variant="brand"
-            size="lg"
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-            {isSubmitting ? "Creating account..." : "Create account"}
+          <Button type="submit" variant="brand" size="lg" className="w-full">
+            Create account
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm">
-          <LoginWithGoogleBtn />
-        </p>
+
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
