@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
-import { z } from "zod";
 
 const client = new MongoClient(process.env.DB_URL as string);
 const db = client.db("equipment-rental-platform");
