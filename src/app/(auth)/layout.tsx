@@ -33,8 +33,8 @@ export default function AuthLayout({
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-40 -top-40 size-[28rem] rounded-full bg-brand/25 blur-3xl" />
-        <div className="absolute -bottom-40 right-0 size-[30rem] rounded-full bg-success/15 blur-3xl" />
+        <div className="absolute -left-40 -top-40 size-112 rounded-full bg-brand/25 blur-3xl" />
+        <div className="absolute -bottom-40 right-0 size-120 rounded-full bg-success/15 blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
@@ -95,7 +95,7 @@ export default function AuthLayout({
             </ul>
           </div>
 
-          <div className="relative flex items-center gap-4 rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.06] p-4">
+          <div className="relative flex items-center gap-4 rounded-2xl border border-primary-foreground/10 bg-primary-foreground/6 p-4">
             <div className="flex -space-x-2.5">
               <span className="size-8 rounded-full border-2 border-primary bg-brand" />
               <span className="size-8 rounded-full border-2 border-primary bg-success" />

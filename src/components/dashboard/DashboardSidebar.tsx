@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Boxes, Loader2, LogOut } from "lucide-react";
+import { Boxes, Loader2, LogIn, LogOut } from "lucide-react";
 
 import {
   Sidebar,
@@ -25,21 +25,12 @@ import {
   DASHBOARD_PROFILE_HREF,
   dashboardRoleMeta,
   getDashboardNav,
+  getDashboardRoleFromPathname,
   isDashboardNavItemActive,
-  normalizeDashboardRole,
+  isDashboardRole,
 } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
-
-const getInitials = (name?: string | null) => {
-  if (!name) return "?";
-
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-};
+import { getInitials } from "@/lib/format";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
@@ -47,7 +38,10 @@ export default function DashboardSidebar() {
   const { data: session, isPending } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const role = normalizeDashboardRole(session?.user?.role);
+  const sessionRole = session?.user?.role;
+  const role = isDashboardRole(sessionRole)
+    ? sessionRole
+    : (getDashboardRoleFromPathname(pathname) ?? "customer");
   const roleMeta = dashboardRoleMeta[role];
   const navGroups = useMemo(() => getDashboardNav(role), [role]);
 
@@ -144,7 +138,7 @@ export default function DashboardSidebar() {
                               "relative h-9 gap-2.5 rounded-lg px-2.5 font-normal text-sidebar-foreground/75 transition-colors",
                               "hover:bg-sidebar-accent hover:text-sidebar-foreground",
                               "data-active:bg-brand/10 data-active:font-semibold data-active:text-brand",
-                              "data-active:before:absolute data-active:before:inset-y-2 data-active:before:left-0 data-active:before:w-[3px] data-active:before:rounded-full data-active:before:bg-brand",
+                              "data-active:before:absolute data-active:before:inset-y-2 data-active:before:left-0 data-active:before:w-0.75 data-active:before:rounded-full data-active:before:bg-brand",
                             )}
                           >
                             <item.icon className="size-4 shrink-0" />
@@ -198,22 +192,36 @@ export default function DashboardSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              tooltip="Sign out"
-              disabled={isSigningOut}
-              onClick={handleSignOut}
-              className="h-9 gap-2.5 rounded-lg px-2.5 font-normal text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive"
-            >
-              {isSigningOut ? (
-                <Loader2 className="size-4 shrink-0 animate-spin" />
-              ) : (
-                <LogOut className="size-4 shrink-0" />
-              )}
-              <span className="truncate">Sign out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {user ? (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                tooltip="Sign out"
+                disabled={isSigningOut}
+                onClick={handleSignOut}
+                className="h-9 gap-2.5 rounded-lg px-2.5 font-normal text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive"
+              >
+                {isSigningOut ? (
+                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                ) : (
+                  <LogOut className="size-4 shrink-0" />
+                )}
+                <span className="truncate">Sign out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ) : (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                tooltip="Sign in"
+                render={<Link href="/login" />}
+                className="h-9 gap-2.5 rounded-lg px-2.5 font-normal text-brand hover:bg-brand/10 hover:text-brand"
+              >
+                <LogIn className="size-4 shrink-0" />
+                <span className="truncate">Sign in to your account</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
 

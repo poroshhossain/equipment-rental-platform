@@ -73,7 +73,7 @@ const Navbar = () => {
             size="sm"
             onClick={() => {
               setOpen(false);
-              router.push("/dashboard");
+              router.push(`/dashboard/${session?.user?.role}`);
             }}
             className="cursor-pointer bg-brand text-brand-foreground hover:bg-brand/50 hover:text-brand-foreground/80"
           >

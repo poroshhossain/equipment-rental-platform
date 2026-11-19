@@ -105,7 +105,7 @@ export const dashboardNavConfig: Record<DashboardRole, DashboardNavGroup[]> = {
           icon: Package,
         },
         {
-          title: "Rental Requests",
+          title: "My Equipment Rental",
           href: "/dashboard/my-equipment-rentals",
           icon: ClipboardList,
         },
@@ -174,6 +174,47 @@ export function isDashboardRole(value: unknown): value is DashboardRole {
 /** Falls back to the default better-auth role (`customer`). */
 export function normalizeDashboardRole(value: unknown): DashboardRole {
   return isDashboardRole(value) ? value : "customer";
+}
+
+/**
+ * Infers the dashboard role from the current route.
+ * Used as a fallback before the session is available (or when previewing pages).
+ */
+export function getDashboardRoleFromPathname(
+  pathname: string,
+): DashboardRole | null {
+  const matches = (routes: string[]) =>
+    routes.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    );
+
+  if (
+    matches([
+      "/dashboard/owner",
+      "/dashboard/add-equipment",
+      "/dashboard/my-equipment",
+      "/dashboard/my-equipment-rentals",
+      "/dashboard/my-profile",
+    ])
+  ) {
+    return "owner";
+  }
+
+  if (matches(["/dashboard/admin", "/dashboard/all-users", "/dashboard/all-equipment", "/dashboard/all-rentals"])) {
+    return "admin";
+  }
+
+  if (
+    matches([
+      "/dashboard/customer",
+      "/dashboard/my-rentals",
+      "/dashboard/favorites",
+    ])
+  ) {
+    return "customer";
+  }
+
+  return null;
 }
 
 export function getDashboardNav(role: unknown): DashboardNavGroup[] {
