@@ -182,6 +182,27 @@ export const createBooking = (booking: BookingInput, token?: string) =>
 export const getBooking = (id: string, token?: string) =>
   read<Booking | null>(`/api/v1/customer/bookings/${id}`, null, token);
 
+export const createCheckout = (bookingId: string, token?: string) =>
+  request<{ url: string | null }>(
+    "/api/v1/payments/checkout",
+    token,
+    { method: "POST", body: JSON.stringify({ bookingId }) },
+  );
+
+export interface PaymentRecord {
+  id: string;
+  bookingId: string;
+  amount: number;
+  status: string;
+}
+
+export const getPayment = (bookingId: string, token?: string) =>
+  read<PaymentRecord | null>(
+    `/api/v1/payments?bookingId=${encodeURIComponent(bookingId)}`,
+    null,
+    token,
+  );
+
 export const getUserBookings = (userId: string, token?: string) =>
   read<Booking[]>(
     `/api/v1/customer/bookings?userId=${encodeURIComponent(userId)}`,

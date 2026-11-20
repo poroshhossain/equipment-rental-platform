@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Info, ShieldCheck } from "lucide-react";
 
+import PayWithStripe from "./PayWithStripe";
+
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -67,13 +69,14 @@ export default function PaymentSummary({ booking }: { booking: Booking | null })
             </span>
           </div>
 
-          <div className="flex gap-3 rounded-lg border border-brand/20 bg-brand/5 p-4 text-sm">
-            <Info className="size-4 shrink-0 text-brand" />
-            <div className="space-y-1">
-              <p className="font-medium">Payment integration coming soon</p>
+          <div className="space-y-3">
+            <PayWithStripe bookingId={booking.id} />
+            <div className="flex gap-3 rounded-lg border border-brand/20 bg-brand/5 p-4 text-sm">
+              <Info className="size-4 shrink-0 text-brand" />
               <p className="text-muted-foreground">
-                Your booking is saved with a pending payment. A payment gateway
-                will be connected here later.
+                Your booking is saved as pending until Stripe confirms the
+                payment. Configure <code>STRIPE_SECRET_KEY</code> to enable live
+                checkout.
               </p>
             </div>
           </div>
