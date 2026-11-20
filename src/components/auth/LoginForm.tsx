@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,15 +16,48 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
+import { loginSchema } from "@/lib/validations/auth";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  // Add your sign in logic here (zod + better-auth sign in).
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Check your details.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const result = await authClient.signIn.email({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message ?? "Could not sign in.");
+        return;
+      }
+
+      toast.success("Welcome back!");
+      const session = await authClient.getSession();
+      const role = (session.data?.user as { role?: string } | undefined)?.role ?? "customer";
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next || `/dashboard/${role}`);
+      router.refresh();
+    } catch {
+      toast.error("Could not sign in. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -82,8 +117,9 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <Button type="submit" variant="brand" size="lg" className="w-full">
-            Sign in
+          <Button type="submit" variant="brand" size="lg" className="w-full" disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : null}
+            {busy ? "Signing in…" : "Sign in"}
           </Button>
         </form>
 

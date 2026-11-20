@@ -1,14 +1,15 @@
 "use client";
 
+import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
+
 import { authClient } from "@/lib/auth-client";
 import { Button } from "../ui/button";
-import { FcGoogle } from "react-icons/fc";
 
 const LoginWithGoogleBtn = () => {
   const signIn = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-    });
+    toast.info("Redirecting to Google…");
+    await authClient.signIn.social({ provider: "google" });
   };
 
   return (

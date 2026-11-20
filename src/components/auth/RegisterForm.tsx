@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Loader2, User } from "lucide-react";
+import { toast } from "sonner";
 
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
 import PhotoField from "@/components/auth/PhotoField";
@@ -16,17 +18,51 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
+import { registerSchema } from "@/lib/validations/auth";
+
+import LoginWithGoogleBtn from "./LoginWithGoogleBtn";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  // Add your registration logic here (zod + better-auth sign up).
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const parsed = registerSchema.safeParse({ name, email, password, photoUrl });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Check your details.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const result = await authClient.signUp.email({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        image: parsed.data.photoUrl,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message ?? "Could not create account.");
+        return;
+      }
+
+      toast.success("Account created. Welcome to EquipRent!");
+      router.push("/dashboard/customer");
+      router.refresh();
+    } catch {
+      toast.error("Could not create account. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -106,11 +142,14 @@ export default function RegisterForm() {
             <PasswordRequirements password={password} />
           </div>
 
-          <Button type="submit" variant="brand" size="lg" className="w-full">
-            Create account
+          <Button type="submit" variant="brand" size="lg" className="w-full" disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : null}
+            {busy ? "Creating account…" : "Create account"}
           </Button>
         </form>
-
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          <LoginWithGoogleBtn />
+        </p>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link

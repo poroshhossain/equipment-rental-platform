@@ -4,9 +4,12 @@ A Next.js + Express equipment rental marketplace. Visitors browse equipment,
 logged-in customers save favorites and book gear, and owners manage their fleet
 from a role-aware dashboard. All records live in MongoDB behind a small Express API.
 
-> **Current stage:** public site, customer flows, owner dashboard and admin dashboard
-> are wired to the API. The payment page is a booking summary only — no payment
-> gateway is connected yet.
+> **Live URL:** add the deployed client URL here after deployment.
+>
+> **Current stage:** public site, customer flows, owner/admin dashboards, Stripe
+> checkout, JWT-protected API, analytics and cron jobs are implemented. Stripe,
+> ImgBB and email keys are read from environment variables — add real keys in
+> production to enable those integrations.
 
 ---
 
@@ -23,6 +26,17 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
 | Backend    | Express 5 + MongoDB (separate project)             |
 | Icons      | lucide-react                                       |
 | Toasts     | Sonner                                             |
+
+### NPM packages used
+
+- **Client:** `next`, `react`, `react-dom`, `better-auth`, `@better-auth/mongo-adapter`,
+  `mongodb`, `jose`, `framer-motion`, `react-hook-form`, `@hookform/resolvers`, `zod`,
+  `sonner`, `lucide-react`, `@base-ui/react`, `class-variance-authority`, `clsx`,
+  `tailwind-merge`, `tailwindcss`
+- **Server:** `express`, `cors`, `dotenv`, `mongodb`, `jose`, `stripe`, `node-cron`
+
+All secrets (MongoDB, auth JWT, Stripe, ImgBB, Google OAuth) come from `.env`;
+copy `.env.example` and never commit real values.
 
 ---
 
@@ -60,8 +74,9 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 - **Booking modal** — start/end date, quantity, contact number, delivery address
   and notes. The total is calculated from rental duration × rental type × quantity.
   Availability is checked on the server and units are reserved.
-- **Payment page** — booking summary with the saved total and a clear notice that
-  gateway integration is not connected yet.
+- **Payment page** — booking summary with a Stripe Checkout button and a
+  `/payment/success` page. The webhook marks bookings paid and stores the
+  transaction in the `payments` collection.
 - **My Rentals** — table of the customer's bookings with dates, total and both
   payment/booking statuses.
 - **Favorites** — table of saved equipment in `/dashboard/favorites` with
