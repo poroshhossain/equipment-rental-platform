@@ -66,6 +66,21 @@ export interface UserProfile {
   address: string;
 }
 
+export type UserRole = "customer" | "owner" | "admin";
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+export interface AdminRental extends EquipmentRental {
+  ownerName: string;
+  ownerEmail: string;
+}
+
 export interface Category {
   id: string;
   name: string;

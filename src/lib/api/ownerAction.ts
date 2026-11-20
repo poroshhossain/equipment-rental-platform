@@ -1,4 +1,6 @@
 import type {
+  AdminRental,
+  AdminUser,
   Booking,
   BookingInput,
   Category,
@@ -10,6 +12,7 @@ import type {
   OwnerProfileInput,
   Review,
   UserProfile,
+  UserRole,
 } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -147,4 +150,36 @@ export const saveUserProfile = (profile: UserProfile) =>
   request<UserProfile>("/api/v1/profile", {
     method: "PATCH",
     body: JSON.stringify(profile),
+  });
+
+export const getAdminUsers = () => read<AdminUser[]>("/api/v1/admin/users", []);
+
+export const changeUserRole = (id: string, role: UserRole) =>
+  request<AdminUser>(`/api/v1/admin/users/${id}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
+
+export const deleteAdminUser = (id: string) =>
+  request(`/api/v1/admin/users/${id}`, { method: "DELETE" });
+
+export const getAdminEquipment = () =>
+  read<Equipment[]>("/api/v1/admin/equipments", []);
+
+export const setEquipmentStatus = (id: string, status: Equipment["status"]) =>
+  request<Equipment>(`/api/v1/admin/equipments/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+
+export const getAdminRentals = () =>
+  read<AdminRental[]>("/api/v1/admin/rentals", []);
+
+export const updateRentalStatus = (
+  id: string,
+  status: { paymentStatus?: Booking["paymentStatus"]; bookingStatus?: Booking["bookingStatus"] },
+) =>
+  request<AdminRental>(`/api/v1/admin/rentals/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify(status),
   });

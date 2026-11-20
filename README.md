@@ -4,9 +4,9 @@ A Next.js + Express equipment rental marketplace. Visitors browse equipment,
 logged-in customers save favorites and book gear, and owners manage their fleet
 from a role-aware dashboard. All records live in MongoDB behind a small Express API.
 
-> **Current stage:** public home/catalog, details, favorites, booking flow and owner
-> dashboard are wired to the API. The payment page is a booking summary only — no
-> payment gateway is connected yet.
+> **Current stage:** public site, customer flows, owner dashboard and admin dashboard
+> are wired to the API. The payment page is a booking summary only — no payment
+> gateway is connected yet.
 
 ---
 
@@ -78,10 +78,20 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 - Overview stats, 6-month revenue chart, rentals, pending-review queue.
 - Add / update / delete equipment and a searchable equipment table.
 
-### Dashboard Shell
+### Admin Dashboard (admin role only)
 
-- Private routes guarded by `AuthGuard`; sidebar, role-aware navigation, sticky
-  header and session sign-out.
+- Overview with totals for users, equipment and rentals.
+- **All Users** — table of registered accounts with role changes and a manage
+  dialog (role buttons + delete user, including auth records).
+- **All Equipment** — every listing with approve/reject, update and delete actions.
+- **All Rentals** — all bookings with customer/owner/equipment details, duration,
+  amount and editable payment/booking statuses.
+- **My Profile** — the shared profile page.
+
+### Dashboard Shell & States
+
+- Private routes guarded by `AuthGuard`; admin pages add a `RoleGuard`.
+- Dashboard loading skeleton, global error page with retry and a 404 page.
 
 ---
 
@@ -103,7 +113,10 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 | `/dashboard/my-equipment/[id]/edit` | Update a listing                         |
 | `/dashboard/my-equipment-rentals`   | Owner rentals                            |
 | `/dashboard/my-profile`             | Shared profile (all roles)               |
-| `/dashboard/admin`                  | Admin dashboard (placeholder)            |
+| `/dashboard/admin`                  | Admin overview                           |
+| `/dashboard/all-users`              | Users, roles and account management      |
+| `/dashboard/all-equipment`          | Approve/reject/update/delete listings    |
+| `/dashboard/all-rentals`            | Monitor and manage all bookings          |
 
 ---
 
@@ -143,7 +156,8 @@ equipment-rental-platform-server/
         ├── users/
         ├── content/                  # Categories + reviews
         ├── owner/                    # Equipment, rentals, profile, revenue
-        └── customer/                 # Favorites + bookings
+        ├── customer/                 # Favorites + bookings
+        └── admin/                    # Users, equipment and rental management
 ```
 
 ---
@@ -170,6 +184,13 @@ back to empty values if the API is offline; writes show a connection error.
 | `GET`/`POST` | `/api/v1/customer/bookings`     | Create/list bookings           |
 | `GET`    | `/api/v1/customer/bookings/:id`       | Payment summary                |
 | `GET`/`PATCH` | `/api/v1/profile?userId=`        | Shared account profile         |
+| `GET`    | `/api/v1/admin/users`                 | Admin users table         |
+| `PATCH`  | `/api/v1/admin/users/:id/role`         | Change user role          |
+| `DELETE` | `/api/v1/admin/users/:id`              | Delete user + auth records|
+| `GET`    | `/api/v1/admin/equipments`             | Admin equipment table     |
+| `PATCH`  | `/api/v1/admin/equipments/:id/status`  | Approve / reject          |
+| `GET`    | `/api/v1/admin/rentals`                | Admin rentals table       |
+| `PATCH`  | `/api/v1/admin/rentals/:id/status`     | Manage booking statuses   |
 
 MongoDB collections: `equipments`, `rentals`, `ownerProfiles`, `userProfiles`,
 `categories`, `reviews`, `favorites`, `bookings`.
@@ -241,9 +262,10 @@ npm run dev      # http://localhost:3000
 
 - [x] Public home, catalog, details, favorites and booking flow.
 - [x] Seed categories and reviews from MongoDB.
-- [x] Owner dashboard fully backed by the API.
+- [x] Owner and admin dashboards fully backed by the API.
+- [x] Customer My Rentals, favorites table and shared profile page.
+- [x] Loading skeleton, error page and 404 page.
 - [ ] Connect a real payment gateway on `/payment`.
-- [ ] Add customer "My rentals" page.
-- [ ] Add server-side auth guards for private routes.
-- [ ] Add image uploads and admin approval UI.
+- [ ] Add server-side auth/role guards for private routes.
+- [ ] Add image uploads and email notifications.
 - [ ] Add automated tests.
