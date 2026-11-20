@@ -7,7 +7,7 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
 > **Live URL:** add the deployed client URL here after deployment.
 >
 > **Current stage:** public site, customer flows, owner/admin dashboards, Stripe
-> checkout, JWT-protected API, analytics and cron jobs are implemented. Stripe,
+> checkout, analytics and cron jobs are implemented. Stripe,
 > ImgBB and email keys are read from environment variables — add real keys in
 > production to enable those integrations.
 
@@ -30,12 +30,12 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
 ### NPM packages used
 
 - **Client:** `next`, `react`, `react-dom`, `better-auth`, `@better-auth/mongo-adapter`,
-  `mongodb`, `jose`, `framer-motion`, `react-hook-form`, `@hookform/resolvers`, `zod`,
+  `mongodb`, `framer-motion`, `react-hook-form`, `@hookform/resolvers`, `zod`,
   `sonner`, `lucide-react`, `@base-ui/react`, `class-variance-authority`, `clsx`,
   `tailwind-merge`, `tailwindcss`
-- **Server:** `express`, `cors`, `dotenv`, `mongodb`, `jose`, `stripe`, `node-cron`
+- **Server:** `express`, `cors`, `dotenv`, `mongodb`, `stripe`, `node-cron`
 
-All secrets (MongoDB, auth JWT, Stripe, ImgBB, Google OAuth) come from `.env`;
+All secrets (MongoDB, better-auth, Stripe, ImgBB, Google OAuth) come from `.env`;
 copy `.env.example` and never commit real values.
 
 ---

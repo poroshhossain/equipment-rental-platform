@@ -36,7 +36,6 @@ import {
   formatDateRange,
   getInitials,
 } from "@/lib/format";
-import { serverToken } from "@/lib/server-token";
 import { bookingStatusMeta, equipmentStatusMeta } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -44,14 +43,13 @@ import { cn } from "@/lib/utils";
 export const instant = false;
 
 const OwnerDashboardPage = async () => {
-  const token = await serverToken();
-  const profile = await getOwnerProfile(token);
+  const profile = await getOwnerProfile();
   const ownerEmail = profile?.email ?? "";
   const [equipment, rentals, monthlyRevenue, analytics] = await Promise.all([
-    getOwnerEquipment(ownerEmail, token),
-    getOwnerRentals(ownerEmail, token),
-    getRevenue(token),
-    getOwnerAnalytics(ownerEmail, token),
+    getOwnerEquipment(ownerEmail),
+    getOwnerRentals(ownerEmail),
+    getRevenue(),
+    getOwnerAnalytics(ownerEmail),
   ]);
   const categoryCount = new Set(equipment.map((item) => item.category)).size;
   const activeRentals = rentals.filter(

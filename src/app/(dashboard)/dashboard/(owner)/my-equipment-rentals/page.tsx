@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import RentalsTable from "@/components/dashboard/owner/RentalsTable";
 import { getOwnerProfile, getOwnerRentals } from "@/lib/api/ownerAction";
-import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "My equipment rental | EquipRent",
@@ -14,9 +13,8 @@ export const metadata: Metadata = {
 export const instant = false;
 
 const MyEquipmentRentalPage = async () => {
-  const token = await serverToken();
-  const profile = await getOwnerProfile(token);
-  const rentals = await getOwnerRentals(profile?.email ?? "", token);
+  const profile = await getOwnerProfile();
+  const rentals = await getOwnerRentals(profile?.email ?? "");
 
   return (
     <div className="space-y-5">

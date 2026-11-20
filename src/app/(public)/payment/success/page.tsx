@@ -9,7 +9,6 @@ import {
   getPayment,
 } from "@/lib/api/ownerAction";
 import { formatCurrency } from "@/lib/format";
-import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "Payment status | EquipRent",
@@ -24,9 +23,8 @@ const PaymentSuccessPage = async ({
   searchParams: Promise<{ booking?: string }>;
 }) => {
   const { booking: id } = await searchParams;
-  const token = await serverToken();
   const [booking, payment] = id
-    ? await Promise.all([getBooking(id, token), getPayment(id, token)])
+    ? await Promise.all([getBooking(id), getPayment(id)])
     : [null, null];
   const paid = payment?.status === "paid" || booking?.paymentStatus === "paid";
 

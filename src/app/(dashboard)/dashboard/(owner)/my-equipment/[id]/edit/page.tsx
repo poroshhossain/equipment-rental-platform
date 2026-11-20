@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import EquipmentForm from "@/components/dashboard/owner/EquipmentForm";
 import { getOwnerEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
-import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "Update equipment | EquipRent",
@@ -19,9 +18,8 @@ interface EditEquipmentPageProps {
 
 const EditEquipmentPage = async ({ params }: EditEquipmentPageProps) => {
   const { id } = await params;
-  const token = await serverToken();
-  const profile = await getOwnerProfile(token);
-  const equipmentList = await getOwnerEquipment(profile?.email ?? "", token);
+  const profile = await getOwnerProfile();
+  const equipmentList = await getOwnerEquipment(profile?.email ?? "");
   const equipment = equipmentList.find((item) => item.id === id);
 
   if (!equipment) {

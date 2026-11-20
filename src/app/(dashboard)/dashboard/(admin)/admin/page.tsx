@@ -12,7 +12,6 @@ import {
   getAdminUsers,
 } from "@/lib/api/ownerAction";
 import { formatCurrency } from "@/lib/format";
-import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "Admin dashboard | EquipRent",
@@ -22,12 +21,11 @@ export const metadata: Metadata = {
 export const instant = false;
 
 const AdminDashboardPage = async () => {
-  const token = await serverToken();
   const [users, equipment, rentals, analytics] = await Promise.all([
-    getAdminUsers(token),
-    getAdminEquipment(token),
-    getAdminRentals(token),
-    getAdminAnalytics(token),
+    getAdminUsers(),
+    getAdminEquipment(),
+    getAdminRentals(),
+    getAdminAnalytics(),
   ]);
 
   const monthly = analytics?.monthlyBookings ?? [];

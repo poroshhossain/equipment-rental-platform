@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import EquipmentForm from "@/components/dashboard/owner/EquipmentForm";
 import { getOwnerProfile } from "@/lib/api/ownerAction";
-import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "Add equipment | EquipRent",
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 export const instant = false;
 
 const AddEquipmentPage = async () => {
-  const profile = await getOwnerProfile(await serverToken());
+  const profile = await getOwnerProfile();
 
   return <EquipmentForm owner={profile} />;
 };
