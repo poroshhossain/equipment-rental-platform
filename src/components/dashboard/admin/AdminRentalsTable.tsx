@@ -6,6 +6,11 @@ import { MoreHorizontal } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
 import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -66,13 +71,24 @@ export default function AdminRentalsTable() {
     }
   };
 
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(rentals, 10);
+
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading rentals…</p>;
+    return <TableSkeleton rows={8} columns={11} label="Loading rentals" />;
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <Table>
+    <>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <Table>
         <TableHeader>
           <TableRow className="bg-secondary/40 hover:bg-secondary/40">
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Customer</TableHead>
@@ -89,7 +105,7 @@ export default function AdminRentalsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rentals.map((rental) => (
+          {pageItems.map((rental) => (
             <TableRow key={rental.id} className="hover:bg-secondary/30">
               <TableCell className="px-4 py-3">
                 <div className="flex items-center gap-2.5">
@@ -196,7 +212,18 @@ export default function AdminRentalsTable() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </div>
+        </Table>
+      </div>
+
+      <TablePagination
+        page={page}
+        pageCount={pageCount}
+        start={start}
+        end={end}
+        total={total}
+        onPageChange={setPage}
+        label="rentals"
+      />
+    </>
   );
 }

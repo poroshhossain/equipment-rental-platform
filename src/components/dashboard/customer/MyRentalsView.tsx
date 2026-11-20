@@ -5,6 +5,11 @@ import Link from "next/link";
 import { CalendarClock, Eye, MoreHorizontal } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
+import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -55,8 +60,18 @@ export default function MyRentalsView() {
       .finally(() => setLoading(false));
   }, [userId]);
 
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(bookings, 8);
+
   if (isPending || loading) {
-    return <p className="text-sm text-muted-foreground">Loading rentals…</p>;
+    return <TableSkeleton rows={6} columns={8} label="Loading rentals" />;
   }
 
   if (!userId) return null;
@@ -77,8 +92,9 @@ export default function MyRentalsView() {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <Table>
+    <>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <Table>
         <TableHeader>
           <TableRow className="bg-secondary/40 hover:bg-secondary/40">
             {headings.map((heading) => (
@@ -89,7 +105,7 @@ export default function MyRentalsView() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bookings.map((booking) => {
+          {pageItems.map((booking) => {
             const payment = paymentStatusMeta[booking.paymentStatus];
             const status = bookingStatusMeta[booking.bookingStatus];
 
@@ -147,7 +163,18 @@ export default function MyRentalsView() {
             );
           })}
         </TableBody>
-      </Table>
-    </div>
+        </Table>
+      </div>
+
+      <TablePagination
+        page={page}
+        pageCount={pageCount}
+        start={start}
+        end={end}
+        total={total}
+        onPageChange={setPage}
+        label="rentals"
+      />
+    </>
   );
 }

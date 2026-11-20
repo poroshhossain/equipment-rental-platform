@@ -6,7 +6,6 @@ import {
   Boxes,
   Clock,
   Eye,
-  MapPin,
   MoreHorizontal,
   Package,
   Pencil,
@@ -17,6 +16,10 @@ import {
 import { toast } from "sonner";
 
 import EmptyState from "@/components/dashboard/EmptyState";
+import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
 import StatCard from "@/components/dashboard/StatCard";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -112,6 +115,16 @@ export default function EquipmentTable({
       return matchesQuery && matchesCategory && matchesStatus;
     });
   }, [items, search, category, status]);
+
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(filteredItems, 8, `${search}|${category}|${status}`);
 
   const totalUnits = items.reduce(
     (total, item) => total + item.availableQuantity,
@@ -317,7 +330,7 @@ export default function EquipmentTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredItems.map((item) => {
+                  {pageItems.map((item) => {
                     const statusMeta = equipmentStatusMeta[item.status];
 
                     return (
@@ -403,7 +416,7 @@ export default function EquipmentTable({
             </div>
 
             <div className="divide-y divide-border/70 md:hidden">
-              {filteredItems.map((item) => {
+              {pageItems.map((item) => {
                 const statusMeta = equipmentStatusMeta[item.status];
 
                 return (
@@ -486,15 +499,15 @@ export default function EquipmentTable({
           </>
         )}
 
-        <div className="flex flex-col gap-2 border-t border-border/70 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            Showing {filteredItems.length} of {items.length} listings
-          </span>
-          <span className="flex items-center gap-2">
-            <MapPin className="size-3.5" />
-            Servicing the San Francisco Bay Area
-          </span>
-        </div>
+        <TablePagination
+          page={page}
+          pageCount={pageCount}
+          start={start}
+          end={end}
+          total={total}
+          onPageChange={setPage}
+          label="listings"
+        />
       </div>
 
       <Sheet

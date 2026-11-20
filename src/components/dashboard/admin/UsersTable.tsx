@@ -5,6 +5,11 @@ import { toast } from "sonner";
 import { MoreHorizontal, Trash2, UserCog } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
+import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,8 +91,18 @@ export default function UsersTable() {
     }
   };
 
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(users, 10);
+
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading users…</p>;
+    return <TableSkeleton rows={8} columns={5} label="Loading users" />;
   }
 
   return (
@@ -104,7 +119,7 @@ export default function UsersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {pageItems.map((user) => (
               <TableRow key={user.id} className="hover:bg-secondary/30">
                 <TableCell className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -160,6 +175,16 @@ export default function UsersTable() {
           </TableBody>
         </Table>
       </div>
+
+      <TablePagination
+        page={page}
+        pageCount={pageCount}
+        start={start}
+        end={end}
+        total={total}
+        onPageChange={setPage}
+        label="users"
+      />
 
       <Dialog
         open={Boolean(selected)}

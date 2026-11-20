@@ -13,6 +13,7 @@ import {
 import EquipmentCard from "@/components/public/home/EquipmentCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ResponsivePagination } from "@/components/ui/pagination";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +27,8 @@ import {
   RENTAL_TYPE_OPTIONS,
   type Equipment,
 } from "@/lib/types";
+
+const PAGE_SIZE = 9;
 
 const FILTER_KEYS = [
   "q",
@@ -320,6 +323,17 @@ export default function EquipmentBrowser({ items }: { items: Equipment[] }) {
   const activeFilters = FILTER_KEYS.filter((key) => values[key]);
   const activeCount = activeFilters.length;
 
+  // Keying the page by the active filters resets to page 1 whenever they change.
+  const filterKey = params.toString();
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const requestedPage = pageState.key === filterKey ? pageState.page : 1;
+  const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const page = Math.min(requestedPage, pageCount);
+  const start = (page - 1) * PAGE_SIZE;
+  const end = Math.min(start + PAGE_SIZE, items.length);
+  const pageItems = items.slice(start, end);
+  const setPage = (next: number) => setPageState({ key: filterKey, page: next });
+
   const panelProps: FilterPanelProps = {
     values,
     search,
@@ -356,7 +370,7 @@ export default function EquipmentBrowser({ items }: { items: Equipment[] }) {
         </aside>
 
         <section className="min-w-0 flex-1 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-heading text-lg font-semibold">
                 {items.length} {items.length === 1 ? "item" : "items"} found
@@ -366,12 +380,12 @@ export default function EquipmentBrowser({ items }: { items: Equipment[] }) {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="lg:hidden"
+                className="w-full lg:hidden sm:w-auto"
                 onClick={() => setMobileOpen(true)}
               >
                 <SlidersHorizontal />
@@ -386,7 +400,7 @@ export default function EquipmentBrowser({ items }: { items: Equipment[] }) {
                 aria-label="Sort equipment"
                 value={values.sort ?? ""}
                 onChange={(event) => updateParam("sort", event.target.value)}
-                className={cn(selectClass, "h-9 w-auto min-w-40")}
+                className={cn(selectClass, "h-9 w-full sm:w-auto sm:min-w-40")}
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -442,11 +456,28 @@ export default function EquipmentBrowser({ items }: { items: Equipment[] }) {
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {items.map((item) => (
+              {pageItems.map((item) => (
                 <EquipmentCard key={item.id} equipment={item} />
               ))}
             </div>
           )}
+
+          {pageCount > 1 ? (
+            <div className="flex flex-col items-center gap-3 border-t border-border/70 px-1 pt-5 pb-1 text-center sm:flex-row sm:justify-between sm:px-0 sm:pb-0 sm:text-left">
+              <p className="text-xs text-muted-foreground">
+                Showing{" "}
+                <span className="font-medium text-foreground">{start + 1}</span>{" "}
+                – <span className="font-medium text-foreground">{end}</span> of{" "}
+                <span className="font-medium text-foreground">{items.length}</span>{" "}
+                items
+              </p>
+              <ResponsivePagination
+                page={page}
+                pageCount={pageCount}
+                onPageChange={setPage}
+              />
+            </div>
+          ) : null}
         </section>
       </div>
 

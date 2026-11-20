@@ -11,6 +11,11 @@ import {
 } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
+import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,8 +146,18 @@ export default function AdminEquipmentTable() {
     }
   };
 
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(items, 8);
+
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading equipment…</p>;
+    return <TableSkeleton rows={8} columns={9} label="Loading equipment" />;
   }
 
   return (
@@ -165,7 +180,7 @@ export default function AdminEquipmentTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => {
+              {pageItems.map((item) => {
                 const meta = equipmentStatusMeta[item.status];
 
                 return (
@@ -225,7 +240,7 @@ export default function AdminEquipmentTable() {
 
         {/* Small / medium screens: stacked cards */}
         <div className="divide-y divide-border/70 xl:hidden">
-          {items.map((item) => {
+          {pageItems.map((item) => {
             const meta = equipmentStatusMeta[item.status];
 
             return (
@@ -296,6 +311,16 @@ export default function AdminEquipmentTable() {
           })}
         </div>
       </div>
+
+      <TablePagination
+        page={page}
+        pageCount={pageCount}
+        start={start}
+        end={end}
+        total={total}
+        onPageChange={setPage}
+        label="listings"
+      />
 
       <Dialog
         open={Boolean(deleteTarget)}

@@ -4,6 +4,10 @@ import { useMemo, useState } from "react";
 import { CalendarClock, CircleDollarSign, Search, Wallet } from "lucide-react";
 
 import EmptyState from "@/components/dashboard/EmptyState";
+import {
+  TablePagination,
+  usePagination,
+} from "@/components/dashboard/TablePagination";
 import StatCard from "@/components/dashboard/StatCard";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -91,6 +95,20 @@ export default function RentalsTable({ rentals }: RentalsTableProps) {
       return matchesQuery && matchesBooking && matchesPayment;
     });
   }, [rentals, search, bookingStatus, paymentStatus]);
+
+  const {
+    page,
+    pageCount,
+    pageItems,
+    start,
+    end,
+    total,
+    setPage,
+  } = usePagination(
+    filteredRentals,
+    8,
+    `${search}|${bookingStatus}|${paymentStatus}`,
+  );
 
   const activeCount = rentals.filter(
     (rental) => rental.bookingStatus === "active",
@@ -256,7 +274,7 @@ export default function RentalsTable({ rentals }: RentalsTableProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRentals.map((rental) => {
+                  {pageItems.map((rental) => {
                     const paymentMeta = paymentStatusMeta[rental.paymentStatus];
                     const bookingMeta = bookingStatusMeta[rental.bookingStatus];
                     const days = getDurationInDays(
@@ -334,7 +352,7 @@ export default function RentalsTable({ rentals }: RentalsTableProps) {
             </div>
 
             <div className="divide-y divide-border/70 lg:hidden">
-              {filteredRentals.map((rental) => {
+              {pageItems.map((rental) => {
                 const paymentMeta = paymentStatusMeta[rental.paymentStatus];
                 const bookingMeta = bookingStatusMeta[rental.bookingStatus];
                 const days = getDurationInDays(
@@ -403,12 +421,15 @@ export default function RentalsTable({ rentals }: RentalsTableProps) {
           </>
         )}
 
-        <div className="flex flex-col gap-2 border-t border-border/70 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            Showing {filteredRentals.length} of {rentals.length} rentals
-          </span>
-          <span>Booking data from the API.</span>
-        </div>
+        <TablePagination
+          page={page}
+          pageCount={pageCount}
+          start={start}
+          end={end}
+          total={total}
+          onPageChange={setPage}
+          label="rentals"
+        />
       </div>
     </div>
   );
