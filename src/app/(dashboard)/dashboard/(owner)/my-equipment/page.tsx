@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import EquipmentTable from "@/components/dashboard/owner/EquipmentTable";
 import { getAllEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
+import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
   title: "My equipment | EquipRent",
@@ -13,9 +14,10 @@ export const metadata: Metadata = {
 export const instant = false;
 
 const MyEquipmentPage = async () => {
+  const token = await serverToken();
   const [equipment, profile] = await Promise.all([
-    getAllEquipment(),
-    getOwnerProfile(),
+    getAllEquipment(token),
+    getOwnerProfile(token),
   ]);
 
   return (
