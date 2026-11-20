@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Eye, MoreHorizontal } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -32,7 +38,7 @@ const headings = [
   "Total amount",
   "Payment",
   "Booking status",
-  "All fields",
+  "Actions",
 ];
 
 export default function MyRentalsView() {
@@ -115,8 +121,27 @@ export default function MyRentalsView() {
                 <TableCell className="px-4 py-3">
                   <StatusBadge label={status.label} tone={status.tone} />
                 </TableCell>
-                <TableCell className="px-4 py-3">
-                  <RecordDetails record={booking} title={booking.equipmentName} />
+                <TableCell className="px-4 py-3 text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      aria-label={`Actions for ${booking.equipmentName}`}
+                    >
+                      <MoreHorizontal />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLinkItem
+                        href={`/equipments/${booking.equipmentId}`}
+                      >
+                        <Eye />
+                        View details
+                      </DropdownMenuLinkItem>
+                      <RecordDetails
+                        record={booking}
+                        title={booking.equipmentName}
+                        asMenu
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );

@@ -2,12 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart, Trash2 } from "lucide-react";
+import { Eye, Heart, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLinkItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -26,7 +34,6 @@ const headings = [
   "Category",
   "Rental price",
   "Availability",
-  "All fields",
   "Actions",
 ];
 
@@ -124,29 +131,27 @@ export default function FavoritesView() {
                   tone={item.availableQuantity > 0 ? "success" : "danger"}
                 />
               </TableCell>
-              <TableCell className="px-4 py-3">
-                <RecordDetails record={item} title={item.name} />
-              </TableCell>
-              <TableCell className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    nativeButton={false}
-                    render={<Link href={`/equipments/${item.id}`} />}
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => handleRemove(item)}
-                  >
-                    <Trash2 />
-                    Remove Favorite
-                  </Button>
-                </div>
+              <TableCell className="px-4 py-3 text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger aria-label={`Actions for ${item.name}`}>
+                    <MoreHorizontal />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLinkItem href={`/equipments/${item.id}`}>
+                      <Eye />
+                      View details
+                    </DropdownMenuLinkItem>
+                    <RecordDetails record={item} title={item.name} asMenu />
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive"
+                      onClick={() => handleRemove(item)}
+                    >
+                      <Trash2 />
+                      Remove favorite
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

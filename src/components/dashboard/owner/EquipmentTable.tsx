@@ -7,6 +7,7 @@ import {
   Clock,
   Eye,
   MapPin,
+  MoreHorizontal,
   Package,
   Pencil,
   Plus,
@@ -19,6 +20,14 @@ import EmptyState from "@/components/dashboard/EmptyState";
 import StatCard from "@/components/dashboard/StatCard";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLinkItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogClose,
@@ -357,37 +366,34 @@ export default function EquipmentTable({
                             tone={statusMeta.tone}
                           />
                         </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`View ${item.name}`}
-                              onClick={() => setSelected(item)}
+                        <TableCell className="px-4 py-3 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              aria-label={`Actions for ${item.name}`}
                             >
-                              <Eye />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`Update ${item.name}`}
-                              nativeButton={false}
-                              render={
-                                <Link href={`/dashboard/my-equipment/${item.id}/edit`} />
-                              }
-                            >
-                              <Pencil />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`Delete ${item.name}`}
-                              className="text-destructive/80 hover:bg-destructive/10 hover:text-destructive"
-                              onClick={() => setDeleteTarget(item)}
-                            >
-                              <Trash2 />
-                            </Button>
-                          </div>
+                              <MoreHorizontal />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => setSelected(item)}>
+                                <Eye />
+                                View details
+                              </DropdownMenuItem>
+                              <DropdownMenuLinkItem
+                                href={`/dashboard/my-equipment/${item.id}/edit`}
+                              >
+                                <Pencil />
+                                Update
+                              </DropdownMenuLinkItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive"
+                                onClick={() => setDeleteTarget(item)}
+                              >
+                                <Trash2 />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );
@@ -444,37 +450,34 @@ export default function EquipmentTable({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSelected(item)}
-                      >
-                        <Eye />
-                        Details
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        nativeButton={false}
-                        render={
-                          <Link href={`/dashboard/my-equipment/${item.id}/edit`} />
-                        }
-                      >
-                        <Pencil />
-                        Update
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive"
-                        aria-label={`Delete ${item.name}`}
-                        onClick={() => setDeleteTarget(item)}
-                      >
-                        <Trash2 />
-                      </Button>
+                    <div className="flex justify-end border-t border-border/70 pt-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label={`Actions for ${item.name}`}
+                        >
+                          <MoreHorizontal />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setSelected(item)}>
+                            <Eye />
+                            View details
+                          </DropdownMenuItem>
+                          <DropdownMenuLinkItem
+                            href={`/dashboard/my-equipment/${item.id}/edit`}
+                          >
+                            <Pencil />
+                            Update
+                          </DropdownMenuLinkItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive"
+                            onClick={() => setDeleteTarget(item)}
+                          >
+                            <Trash2 />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 );

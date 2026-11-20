@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { MoreHorizontal } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -171,8 +177,21 @@ export default function AdminRentalsTable() {
                   ))}
                 </select>
               </TableCell>
-              <TableCell className="px-4 py-3">
-                <RecordDetails record={rental} title={rental.equipmentName} />
+              <TableCell className="px-4 py-3 text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    aria-label={`Actions for ${rental.equipmentName}`}
+                  >
+                    <MoreHorizontal />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <RecordDetails
+                      record={rental}
+                      title={rental.equipmentName}
+                      asMenu
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLinkItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +49,55 @@ import {
   type Equipment,
   type EquipmentStatus,
 } from "@/lib/types";
+
+function EquipmentActions({
+  item,
+  onStatus,
+  onDelete,
+}: {
+  item: Equipment;
+  onStatus: (item: Equipment, status: EquipmentStatus) => void;
+  onDelete: (item: Equipment) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger aria-label={`Actions for ${item.name}`}>
+        <MoreHorizontal />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <RecordDetails record={item} title={item.name} asMenu />
+        <DropdownMenuItem
+          disabled={item.status === "approved"}
+          onClick={() => onStatus(item, "approved")}
+        >
+          <CheckCircle2 />
+          Approve
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={item.status === "rejected"}
+          onClick={() => onStatus(item, "rejected")}
+        >
+          <XCircle />
+          Reject
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLinkItem
+          href={`/dashboard/all-equipment/${item.id}/edit`}
+        >
+          <Pencil />
+          Update
+        </DropdownMenuLinkItem>
+        <DropdownMenuItem
+          className="text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive"
+          onClick={() => onDelete(item)}
+        >
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export default function AdminEquipmentTable() {
   const [items, setItems] = useState<Equipment[]>([]);
@@ -147,46 +209,12 @@ export default function AdminEquipmentTable() {
                     <TableCell className="px-4 py-3">
                       <StatusBadge label={meta.label} tone={meta.tone} />
                     </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <RecordDetails record={item} title={item.name} />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={item.status === "approved"}
-                          onClick={() => handleStatus(item, "approved")}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={item.status === "rejected"}
-                          onClick={() => handleStatus(item, "rejected")}
-                        >
-                          Reject
-                        </Button>
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={`Update ${item.name}`}
-                          nativeButton={false}
-                          render={
-                            <Link href={`/dashboard/all-equipment/${item.id}/edit`} />
-                          }
-                        >
-                          <Pencil />
-                        </Button>
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={`Delete ${item.name}`}
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => setDeleteTarget(item)}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
+                    <TableCell className="px-4 py-3 text-right">
+                      <EquipmentActions
+                        item={item}
+                        onStatus={handleStatus}
+                        onDelete={setDeleteTarget}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -256,47 +284,12 @@ export default function AdminEquipmentTable() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    disabled={item.status === "approved"}
-                    onClick={() => handleStatus(item, "approved")}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    disabled={item.status === "rejected"}
-                    onClick={() => handleStatus(item, "rejected")}
-                  >
-                    Reject
-                  </Button>
-                  <RecordDetails record={item} title={item.name} />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    nativeButton={false}
-                    render={
-                      <Link href={`/dashboard/all-equipment/${item.id}/edit`} />
-                    }
-                  >
-                    <Pencil />
-                    Update
-                  </Button>
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label={`Delete ${item.name}`}
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={() => setDeleteTarget(item)}
-                  >
-                    <Trash2 />
-                  </Button>
+                <div className="flex justify-end border-t border-border/70 pt-2">
+                  <EquipmentActions
+                    item={item}
+                    onStatus={handleStatus}
+                    onDelete={setDeleteTarget}
+                  />
                 </div>
               </div>
             );

@@ -26,7 +26,7 @@ const Footer = () => {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li><Link href="/login" className="hover:text-foreground">Login</Link></li>
             <li><Link href="/register" className="hover:text-foreground">Create an account</Link></li>
-            <li><Link href="/dashboard/customer/favorites" className="hover:text-foreground">My favorites</Link></li>
+            <li><Link href="/dashboard/favorites" className="hover:text-foreground">My favorites</Link></li>
           </ul>
         </div>
       </div>

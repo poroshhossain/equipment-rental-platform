@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, UserCog } from "lucide-react";
+import { MoreHorizontal, Trash2, UserCog } from "lucide-react";
 
 import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -131,18 +137,23 @@ export default function UsersTable() {
                   {user.createdAt ? formatDate(user.createdAt) : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
-                  <RecordDetails record={user} title={user.name} />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelected(user);
-                      setConfirming(false);
-                    }}
-                  >
-                    <UserCog />
-                    Manage
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger aria-label={`Actions for ${user.name}`}>
+                      <MoreHorizontal />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <RecordDetails record={user} title={user.name} asMenu />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelected(user);
+                          setConfirming(false);
+                        }}
+                      >
+                        <UserCog />
+                        Manage
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
