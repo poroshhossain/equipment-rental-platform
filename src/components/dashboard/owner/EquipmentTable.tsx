@@ -52,33 +52,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  EQUIPMENT_CATEGORIES,
-  conditionLabels,
-  equipmentStatusMeta,
-  fakeEquipment,
-  fakeOwner,
-  rentalTypeLabels,
-  rentalTypeSuffixes,
-  type Equipment,
-  type EquipmentStatus,
-} from "@/lib/owner-data";
+import { deleteEquipment } from "@/lib/api/ownerAction";
 import {
   formatCurrency,
   formatDate,
   getInitials,
 } from "@/lib/format";
+import {
+  EQUIPMENT_CATEGORIES,
+  conditionLabels,
+  equipmentStatusMeta,
+  rentalTypeLabels,
+  rentalTypeSuffixes,
+  type Equipment,
+  type EquipmentStatus,
+  type OwnerProfile,
+} from "@/lib/types";
 
 const ALL = "all";
 
 interface EquipmentTableProps {
-  initialEquipment?: Equipment[];
+  equipment: Equipment[];
+  owner: OwnerProfile | null;
 }
 
 export default function EquipmentTable({
-  initialEquipment = fakeEquipment,
+  equipment,
+  owner,
 }: EquipmentTableProps) {
-  const [items, setItems] = useState(initialEquipment);
+  const [items, setItems] = useState<Equipment[]>(equipment);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(ALL);
   const [status, setStatus] = useState<EquipmentStatus | typeof ALL>(ALL);
@@ -109,21 +111,25 @@ export default function EquipmentTable({
   const pendingCount = items.filter((item) => item.status === "pending").length;
   const approvedCount = items.filter((item) => item.status === "approved").length;
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
 
     const removedItem = deleteTarget;
-    setItems((current) => current.filter((item) => item.id !== removedItem.id));
-    setDeleteTarget(null);
 
-    toast.success("Equipment deleted", {
-      description: `${removedItem.name} was removed from your listings.`,
-      action: {
-        label: "Undo",
-        onClick: () =>
-          setItems((current) => [removedItem, ...current]),
-      },
-    });
+    try {
+      await deleteEquipment(removedItem.id);
+      setItems((current) =>
+        current.filter((item) => item.id !== removedItem.id),
+      );
+      setDeleteTarget(null);
+      toast.success("Equipment deleted", {
+        description: `${removedItem.name} was removed from your listings.`,
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not delete equipment.",
+      );
+    }
   };
 
   return (
@@ -554,7 +560,7 @@ export default function EquipmentTable({
                     ["Available", `${selected.availableQuantity} units`],
                     ["Total quantity", `${selected.totalQuantity} units`],
                     ["Condition", conditionLabels[selected.condition]],
-                    ["Listed", formatDate(selected.createdAt)],
+                    ["Listed", selected.createdAt ? formatDate(selected.createdAt) : "—"],
                     ["Brand", selected.brand],
                     ["Model", selected.model],
                     ["Location", selected.location],
@@ -581,12 +587,14 @@ export default function EquipmentTable({
 
                 <div className="flex items-center gap-3 rounded-lg border border-border/70 p-3">
                   <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">
-                    {getInitials(fakeOwner.name)}
+                    {getInitials(owner?.name ?? "EquipRent")}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{fakeOwner.name}</p>
+                    <p className="text-sm font-medium">
+                      {owner?.name ?? "EquipRent"}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {fakeOwner.company} · Owner
+                      {owner?.company ?? "Equipment owner"}
                     </p>
                   </div>
                 </div>
@@ -624,8 +632,7 @@ export default function EquipmentTable({
             <DialogTitle>Delete equipment?</DialogTitle>
             <DialogDescription>
               <strong className="text-foreground">{deleteTarget?.name}</strong>{" "}
-              will be removed from your listings. You can undo this right after
-              deleting.
+              will be removed from your listings. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

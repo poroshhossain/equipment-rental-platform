@@ -31,13 +31,12 @@ import {
 } from "@/lib/format";
 import {
   bookingStatusMeta,
-  fakeRentals,
   paymentStatusMeta,
   rentalTypeLabels,
   type BookingStatus,
   type EquipmentRental,
   type PaymentStatus,
-} from "@/lib/owner-data";
+} from "@/lib/types";
 
 const ALL = "all";
 
@@ -62,12 +61,10 @@ const paymentFilterItems = [
 ];
 
 interface RentalsTableProps {
-  initialRentals?: EquipmentRental[];
+  rentals: EquipmentRental[];
 }
 
-export default function RentalsTable({
-  initialRentals = fakeRentals,
-}: RentalsTableProps) {
+export default function RentalsTable({ rentals }: RentalsTableProps) {
   const [search, setSearch] = useState("");
   const [bookingStatus, setBookingStatus] = useState<BookingStatus | typeof ALL>(
     ALL,
@@ -75,8 +72,6 @@ export default function RentalsTable({
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | typeof ALL>(
     ALL,
   );
-
-  const rentals = initialRentals;
 
   const filteredRentals = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -412,7 +407,7 @@ export default function RentalsTable({
           <span>
             Showing {filteredRentals.length} of {rentals.length} rentals
           </span>
-          <span>Booking and payment states are mocked for now.</span>
+          <span>Booking data from the API.</span>
         </div>
       </div>
     </div>

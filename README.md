@@ -1,27 +1,39 @@
 # EquipRent — Equipment Rental Platform
 
-A modern equipment rental marketplace built with Next.js, TypeScript and better-auth.
-Renters can discover equipment, owners can manage their fleet, and admins can oversee
-the platform from a shared, role-aware dashboard.
+A Next.js + Express equipment rental marketplace. Owners manage listings, rentals
+and their profile from a role-aware dashboard; data is stored in MongoDB and served
+by a small Express API.
 
-> **Current stage:** front-end complete for the owner dashboard, with realistic mock
-> data. Backend/API integration is the next phase — every place that needs an API call
-> is marked in the code.
+> **Current stage:** the owner dashboard is wired to the backend. Equipment, rentals,
+> owner profile and revenue all come from the API — there is no mock data in the
+> front-end. Bookings are not created anywhere yet, so the rentals/revenue views stay
+> empty until rental records are added to MongoDB.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                       |
-| ---------- | ------------------------------------------------ |
-| Framework  | Next.js 16 (App Router, React Compiler, Turbopack) |
-| Language   | TypeScript                                       |
-| Styling    | Tailwind CSS v4 + shadcn/ui (base-ui primitives) |
-| Auth       | better-auth (email/password + Google)            |
-| Database   | MongoDB (server-side, configured)                |
-| Forms      | React Hook Form + Zod                            |
-| Icons      | lucide-react                                     |
-| Toasts     | Sonner                                           |
+| Layer      | Technology                                        |
+| ---------- | ------------------------------------------------- |
+| Frontend   | Next.js 16 (App Router, Cache Components, Turbopack) |
+| Language   | TypeScript                                        |
+| Styling    | Tailwind CSS v4 + shadcn/ui (base-ui primitives)  |
+| Auth       | better-auth (email/password + Google)             |
+| Forms      | React Hook Form + Zod                             |
+| Backend    | Express 5 + MongoDB (separate project)            |
+| Icons      | lucide-react                                      |
+| Toasts     | Sonner                                            |
+
+---
+
+## Projects
+
+| Path                                                                     | What it is                          |
+| ------------------------------------------------------------------------ | ----------------------------------- |
+| `C:\Projects\a\a9\equipment-rental-platform`                              | Next.js front-end (this project)    |
+| `C:\Projects\a\a9\equipment-rental-platform-server`                       | Express + MongoDB API               |
+
+Both projects connect to the same MongoDB database (`equipment-rental-platform`).
 
 ---
 
@@ -29,136 +41,102 @@ the platform from a shared, role-aware dashboard.
 
 ### Owner Dashboard
 
-- **Overview** — revenue chart, key stats, recent rentals, pending-review queue and
-  quick actions.
-- **Add Equipment** — full listing form with validation:
-  - name, description, category, brand, model
-  - pickup location, rental price, rental type (daily / weekly / monthly)
-  - available quantity, condition
-  - image upload with drag & drop preview (or pasted image URL)
-  - rental terms and conditions
-  - owner information (read-only, pulled from the profile)
-  - listing status defaults to **Pending** and is reviewed by an admin
-- **My Equipment** — responsive table of the logged-in owner's listings with:
-  - search + category/status filters and summary stat cards
-  - equipment, category, rental price, available quantity, status
-  - **View details** drawer, **Update** page and **Delete** confirmation with undo
-  - mobile-friendly card layout
-- **My Equipment Rental** — booking table with:
-  - customer information, equipment information
-  - rental duration and required quantity
-  - booking amount, payment status and booking status
-  - search and status filters + revenue stat cards
-- **My Profile** — owner profile with editable personal/business details, account
-  status, verification badges and lifetime stats.
+- **Overview** — stats, 6-month revenue chart, recent rentals, pending-review queue
+  and quick actions, all from the API.
+- **Add Equipment** — validated listing form (name, description, category, brand,
+  model, location, price, rental type, quantity, condition, image URL, terms).
+- **My Equipment** — searchable/filterable table of live listings with details,
+  update and delete actions.
+- **My Equipment Rental** — table of bookings with payment and booking status.
+- **My Profile** — editable owner profile saved through the API.
 
 ### Dashboard Shell
 
-- Shared, collapsible sidebar with icon-only mode and tooltips.
-- Role-aware navigation for **customer**, **owner** and **admin**, driven by a typed
-  config in `src/lib/dashboard-nav.ts`.
-- Sticky header with the current page title, role chip and public-site link.
-- User card with avatar, email and sign-out.
+- Collapsible sidebar, role-aware navigation and sticky header.
+- better-auth session used for sign-out and the role chip.
 
-### Authentication UI
+### Public Site & Auth
 
-- Login and registration screens with validation UI, password visibility toggle,
-  Google sign-in button and responsive auth layout.
-- better-auth configured with a `role` field (defaults to `customer`).
-
-### Public Site
-
-- Landing page shell, responsive public header/navbar and shared design tokens
-  (brand blue, light/dark themes).
+- Landing page shell, public header/navbar, login and registration screens with
+  validation and Google sign-in.
 
 ---
 
 ## Routes
 
-| Route                              | Description                         |
-| ---------------------------------- | ----------------------------------- |
-| `/`                                | Public landing page                 |
-| `/login`, `/register`              | Authentication screens              |
-| `/dashboard/owner`                 | Owner overview                      |
-| `/dashboard/add-equipment`         | Create a new equipment listing      |
-| `/dashboard/my-equipment`          | Owner's equipment table             |
-| `/dashboard/my-equipment/[id]/edit`| Update a listing                    |
-| `/dashboard/my-equipment-rentals`  | Rentals/bookings for owner gear     |
-| `/dashboard/my-profile`            | Owner profile                       |
-| `/dashboard/customer`              | Customer dashboard (placeholder)    |
-| `/dashboard/admin`                 | Admin dashboard (placeholder)       |
+| Route                               | Description                        |
+| ----------------------------------- | ---------------------------------- |
+| `/`                                 | Public landing page                |
+| `/login`, `/register`               | Authentication screens             |
+| `/dashboard/owner`                  | Owner overview                     |
+| `/dashboard/add-equipment`          | Create a new equipment listing     |
+| `/dashboard/my-equipment`           | Owner's equipment table            |
+| `/dashboard/my-equipment/[id]/edit` | Update a listing                   |
+| `/dashboard/my-equipment-rentals`   | Rentals/bookings for owner gear    |
+| `/dashboard/my-profile`             | Owner profile                      |
+| `/dashboard/customer`               | Customer dashboard (placeholder)   |
+| `/dashboard/admin`                  | Admin dashboard (placeholder)      |
 
 ---
 
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── (auth)/                     # Login & register routes
-│   ├── (dashboard)/dashboard/
-│   │   ├── add-equipment/          # Add equipment page
-│   │   ├── my-equipment/           # Listing table + [id]/edit update page
-│   │   ├── my-equipment-rentals/   # Bookings table
-│   │   ├── my-profile/             # Owner profile
-│   │   ├── owner/                  # Owner overview
-│   │   ├── customer/ | admin/      # Role placeholders
-│   │   └── layout.tsx              # Dashboard shell (sidebar + header)
-│   ├── (public)/                   # Public site routes
-│   └── api/auth/[...all]/          # better-auth handler
-├── components/
-│   ├── auth/                       # Login, register, password & photo fields
-│   ├── dashboard/
-│   │   ├── DashboardSidebar.tsx
-│   │   ├── DashboardHeader.tsx
-│   │   ├── PageHeader.tsx
-│   │   ├── StatCard.tsx
-│   │   ├── StatusBadge.tsx
-│   │   ├── EmptyState.tsx
-│   │   └── owner/                  # EquipmentForm, tables, profile view
-│   ├── public/                     # Header, navbar, logo
-│   └── ui/                         # shadcn/base-ui primitives
-├── hooks/                          # use-mobile
-└── lib/
-    ├── auth.ts / auth-client.ts    # better-auth server & client config
-    ├── dashboard-nav.ts            # Typed role-based navigation config
-    ├── owner-data.ts               # Mock equipment, rentals, profile + status meta
-    ├── format.ts                   # Currency, date and initial helpers
-    └── validations/                # Zod schemas
+equipment-rental-platform/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/                     # Login & register
+│   │   ├── (dashboard)/dashboard/      # Owner pages + dashboard shell
+│   │   ├── (public)/                   # Landing page
+│   │   └── api/auth/[...all]/          # better-auth handler
+│   ├── components/                     # auth, dashboard, public, ui
+│   ├── hooks/                          # use-mobile
+│   └── lib/
+│       ├── api/ownerAction.ts          # All backend requests + data normalization
+│       ├── auth.ts / auth-client.ts    # better-auth config
+│       ├── dashboard-nav.ts            # Role-based navigation config
+│       ├── format.ts                   # Currency, date and initial helpers
+│       ├── types.ts                    # Shared types, options and status labels
+│       └── validations/                # Zod schemas (auth, equipment)
+└── README.md
+
+equipment-rental-platform-server/
+└── src/
+    ├── app.ts                          # Express app and route mounting
+    ├── server.ts                       # Starts the server on PORT
+    ├── config/db.ts                    # MongoDB connection
+    └── modules/
+        ├── users/                      # GET /api/v1/users
+        └── owner/
+            ├── equipment/              # GET/POST/PATCH/DELETE equipments
+            ├── rental/                 # GET owner rentals
+            ├── profile/                # GET/PATCH owner profile
+            └── revenue/                # GET 6-month revenue from paid rentals
 ```
 
 ---
 
-## Mock Data & API Integration
+## Backend API
 
-All owner pages read from `src/lib/owner-data.ts`:
+The front-end calls the API through `src/lib/api/ownerAction.ts`. The backend sends
+plain objects with an `id` field and the client only unwraps
+`{ success, message, data }`. If the API is offline, reads return empty lists so pages
+still render with empty states.
 
-- `fakeOwner` — owner profile
-- `fakeEquipment` — equipment listings
-- `fakeRentals` — rental bookings
-- `monthlyRevenue` — overview chart data
-- status label/tone maps used by badges
+| Method   | Endpoint                    | Used by                         |
+| -------- | --------------------------- | ------------------------------- |
+| `GET`    | `/api/v1/equipments`        | Overview, My Equipment, edit, profile stats |
+| `POST`   | `/api/v1/equipments`        | Add Equipment                   |
+| `PATCH`  | `/api/v1/equipments/:id`    | Update listing                  |
+| `DELETE` | `/api/v1/equipments/:id`    | Delete listing                  |
+| `GET`    | `/api/v1/owner/rentals`     | Rentals table, profile stats    |
+| `GET`    | `/api/v1/owner/profile`     | Owner name, profile form        |
+| `PATCH`  | `/api/v1/owner/profile`     | Save profile                    |
+| `GET`    | `/api/v1/owner/revenue`     | Overview revenue chart          |
 
-Equipment photos are remote Unsplash URLs used as placeholders. Replace them with
-uploaded image URLs once the image endpoint is connected.
-
-Each page/component also contains a `TODO` where the real request belongs. Suggested
-endpoints for the backend phase:
-
-| Method   | Endpoint                          | Used by                  |
-| -------- | --------------------------------- | ------------------------ |
-| `GET`    | `/api/owner/equipment`            | My Equipment             |
-| `POST`   | `/api/owner/equipment`            | Add Equipment            |
-| `GET`    | `/api/owner/equipment/:id`        | Edit page                |
-| `PATCH`  | `/api/owner/equipment/:id`        | Update listing           |
-| `DELETE` | `/api/owner/equipment/:id`        | Delete listing           |
-| `GET`    | `/api/owner/rentals`              | My Equipment Rental      |
-| `GET`    | `/api/owner/profile`              | My Profile               |
-| `PATCH`  | `/api/owner/profile`              | Save profile             |
-| `POST`   | `/api/uploads`                    | Equipment / avatar image |
-
-Form submissions currently validate, log the payload to the browser console, show a
-toast and redirect — swap the `TODO` block for the real request.
+MongoDB collections: `equipments`, `rentals`, `ownerProfiles` (single owner document).
+The revenue endpoint sums `bookingAmount` from rentals with `paymentStatus: "paid"`
+over the last six calendar months.
 
 ---
 
@@ -167,11 +145,27 @@ toast and redirect — swap the `TODO` block for the real request.
 ### Prerequisites
 
 - Node.js 20+
-- MongoDB connection string (for the auth backend)
+- A running MongoDB instance (local or Atlas)
 
-### Environment variables
+### Backend setup
 
-Create `.env` in the project root:
+In `equipment-rental-platform-server`, create `.env`:
+
+```bash
+PORT=5000
+DB_URL="mongodb://localhost:27017"
+```
+
+Then run:
+
+```bash
+npm install
+npm run dev        # http://localhost:5000
+```
+
+### Front-end setup
+
+In `equipment-rental-platform`, create `.env`:
 
 ```bash
 DB_URL="mongodb://localhost:27017"
@@ -179,33 +173,49 @@ BETTER_AUTH_URL="http://localhost:3000"
 BETTER_AUTH_SECRET="your-secret"
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
+# Optional — defaults to http://localhost:5000
+NEXT_PUBLIC_API_URL="http://localhost:5000"
 ```
 
-### Install & run
+Then run:
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-Open <http://localhost:3000>.
+> Start the backend first to see live data. If it is not running, the dashboard still
+> loads with empty states; create/update/save actions will show a connection error.
 
 ### Scripts
 
+**Front-end**
+
 ```bash
-npm run dev      # Start the dev server
+npm run dev      # Dev server
 npm run build    # Production build
-npm run start    # Start the production server
+npm run start    # Production server
 npm run lint     # ESLint
+```
+
+**Backend**
+
+```bash
+npm run dev        # Dev server with reload
+npm run build      # Compile TypeScript to dist/
+npm run start      # Production server
+npm run typecheck  # Type check only
 ```
 
 ---
 
 ## Roadmap
 
-- [ ] Wire owner pages to the API endpoints above.
+- [x] Load, create, update and delete equipment through the API.
+- [x] Serve rentals, owner profile and revenue from the backend.
+- [ ] Add a booking flow that creates rental records.
 - [ ] Add server-side auth/role guards for dashboard routes.
-- [ ] Complete the customer dashboard (rentals, favorites, checkout).
-- [ ] Complete the admin dashboard (users, equipment, rentals, reports).
-- [ ] Connect image uploads (ImgBB) and real payment status updates.
-- [ ] Add automated tests for forms and tables.
+- [ ] Complete the customer dashboard (browse, favorites, checkout).
+- [ ] Complete the admin dashboard (users, approvals, reports).
+- [ ] Connect image uploads and payment status updates.
+- [ ] Add automated tests for forms, tables and endpoints.

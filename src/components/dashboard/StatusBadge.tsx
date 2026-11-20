@@ -1,4 +1,4 @@
-import type { StatusTone } from "@/lib/owner-data";
+import type { StatusTone } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const badgeClasses: Record<StatusTone, string> = {

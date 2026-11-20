@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -14,7 +13,6 @@ import {
   CheckCircle2,
   ClipboardList,
   ImagePlus,
-  Info,
   Lightbulb,
   Loader2,
   MapPin,
@@ -52,58 +50,22 @@ import {
   RENTAL_TYPE_OPTIONS,
   conditionLabels,
   equipmentStatusMeta,
-  fakeOwner,
   rentalTypeLabels,
   type Equipment,
-} from "@/lib/owner-data";
+  type NewEquipment,
+  type OwnerProfile,
+} from "@/lib/types";
+import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-const equipmentFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, "Equipment name must be at least 3 characters.")
-    .max(80, "Equipment name is too long."),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Describe the equipment in at least 20 characters.")
-    .max(1200, "Description is too long."),
-  category: z.string().min(1, "Select a category."),
-  location: z.string().trim().min(2, "Enter a pickup location."),
-  rentalPrice: z
-    .string()
-    .trim()
-    .min(1, "Enter a rental price.")
-    .refine(
-      (value) => Number.isFinite(Number(value)) && Number(value) > 0,
-      "Enter a price greater than 0.",
-    ),
-  rentalType: z.enum(["daily", "weekly", "monthly"]),
-  availableQuantity: z
-    .string()
-    .trim()
-    .min(1, "Enter available quantity.")
-    .refine(
-      (value) =>
-        Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 999,
-      "Enter a whole number between 1 and 999.",
-    ),
-  condition: z.enum(["new", "excellent", "good", "fair"]),
-  brand: z.string().trim().min(1, "Enter the brand."),
-  model: z.string().trim().min(1, "Enter the model."),
-  image: z.string().trim().min(1, "Add at least one equipment image."),
-  terms: z
-    .string()
-    .trim()
-    .min(20, "Add rental terms of at least 20 characters.")
-    .max(2000, "Terms are too long."),
-});
-
-export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
+import { postEquipment, updateEquipment } from "@/lib/api/ownerAction";
+import {
+  equipmentFormSchema,
+  type EquipmentFormValues,
+} from "@/lib/validations/equipment";
 
 interface EquipmentFormProps {
   equipment?: Equipment;
+  owner: OwnerProfile | null;
 }
 
 const categoryOptions = EQUIPMENT_CATEGORIES.map((category) => ({
@@ -284,7 +246,7 @@ function EquipmentImageField({
   );
 }
 
-export default function EquipmentForm({ equipment }: EquipmentFormProps) {
+export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) {
   const router = useRouter();
   const isEditing = Boolean(equipment);
 
@@ -321,31 +283,39 @@ export default function EquipmentForm({ equipment }: EquipmentFormProps) {
   const statusMeta = equipmentStatusMeta[status];
 
   const onSubmit = async (values: EquipmentFormValues) => {
-    // TODO: replace with `POST /api/owner/equipment` or `PATCH /api/owner/equipment/:id`.
-    const payload = {
+    const payload: NewEquipment = {
       ...values,
       rentalPrice: Number(values.rentalPrice),
       availableQuantity: Number(values.availableQuantity),
-      owner: fakeOwner,
-      status: "pending" as const,
+      status: equipment?.status ?? "pending",
+      ...(owner ? { owner } : {}),
     };
 
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    console.info("Equipment payload", payload);
+    try {
+      if (equipment) {
+        await updateEquipment(equipment.id, payload);
+      } else {
+        await postEquipment(payload);
+      }
 
-    toast.success(
-      isEditing
-        ? "Equipment updated successfully."
-        : "Equipment submitted for review.",
-      {
-        description: isEditing
-          ? "Your changes are live. Admin approval may be required for critical edits."
-          : "Our team will review it within 24–48 hours.",
-      },
-    );
+      toast.success(
+        isEditing
+          ? "Equipment updated successfully."
+          : "Equipment submitted for review.",
+        {
+          description: isEditing
+            ? "Your changes are live. Admin approval may be required for critical edits."
+            : "Our team will review it within 24–48 hours.",
+        },
+      );
 
-    router.push("/dashboard/my-equipment");
-    router.refresh();
+      router.push("/dashboard/my-equipment");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not save equipment.",
+      );
+    }
   };
 
   return (
@@ -749,26 +719,34 @@ export default function EquipmentForm({ equipment }: EquipmentFormProps) {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={fakeOwner.avatar}
-                alt={fakeOwner.name}
-                className="size-10 rounded-full object-cover ring-2 ring-brand/15"
-              />
+              {owner?.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={owner.avatar}
+                  alt={owner.name}
+                  className="size-10 rounded-full object-cover ring-2 ring-brand/15"
+                />
+              ) : (
+                <span className="grid size-10 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand ring-2 ring-brand/15">
+                  {getInitials(owner?.name ?? "Owner")}
+                </span>
+              )}
               <div className="min-w-0">
-                <p className="truncate font-medium">{fakeOwner.name}</p>
+                <p className="truncate font-medium">
+                  {owner?.name ?? "Owner"}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {fakeOwner.company}
+                  {owner?.company ?? "Equipment owner"}
                 </p>
               </div>
             </div>
             <div className="space-y-2 border-t border-border/70 pt-3 text-muted-foreground">
               <p className="flex items-center gap-2 text-xs">
                 <MapPin className="size-3.5 shrink-0" />
-                {fakeOwner.location}
+                {owner?.location ?? "—"}
               </p>
-              <p className="truncate text-xs">{fakeOwner.email}</p>
-              <p className="text-xs">{fakeOwner.phone}</p>
+              <p className="truncate text-xs">{owner?.email ?? "—"}</p>
+              <p className="text-xs">{owner?.phone || "Not provided"}</p>
             </div>
             <Button
               type="button"
@@ -796,11 +774,6 @@ export default function EquipmentForm({ equipment }: EquipmentFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">
-          <Info className="mt-0.5 size-3.5 shrink-0" />
-          These pages use mock data for now. Submitting the form logs the payload
-          to the console.
-        </div>
       </aside>
     </form>
   );

@@ -6,7 +6,6 @@ import {
   BadgeCheck,
   Building2,
   CalendarDays,
-  Camera,
   Mail,
   MapPin,
   Phone,
@@ -27,53 +26,64 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { saveOwnerProfile } from "@/lib/api/ownerAction";
+import { formatCurrency, formatDate, getInitials } from "@/lib/format";
 import {
-  fakeEquipment,
-  fakeOwner,
-  fakeRentals,
+  type Equipment,
+  type EquipmentRental,
   type OwnerProfile,
-} from "@/lib/owner-data";
+  type OwnerProfileInput,
+} from "@/lib/types";
 
-type EditableProfile = Pick<
-  OwnerProfile,
-  "name" | "email" | "phone" | "company" | "location" | "bio" | "licenseNumber"
->;
+interface OwnerProfileViewProps {
+  equipment: Equipment[];
+  profile: OwnerProfile | null;
+  rentals: EquipmentRental[];
+}
 
-export default function OwnerProfileView() {
-  const [profile, setProfile] = useState<EditableProfile>({
-    name: fakeOwner.name,
-    email: fakeOwner.email,
-    phone: fakeOwner.phone,
-    company: fakeOwner.company,
-    location: fakeOwner.location,
-    bio: fakeOwner.bio,
-    licenseNumber: fakeOwner.licenseNumber,
+export default function OwnerProfileView({
+  equipment,
+  profile: owner,
+  rentals,
+}: OwnerProfileViewProps) {
+  const [profile, setProfile] = useState<OwnerProfileInput>({
+    name: owner?.name ?? "",
+    email: owner?.email ?? "",
+    phone: owner?.phone ?? "",
+    company: owner?.company ?? "",
+    location: owner?.location ?? "",
+    bio: owner?.bio ?? "",
+    licenseNumber: owner?.licenseNumber ?? "",
   });
 
-  const activeRentals = fakeRentals.filter(
+  const activeRentals = rentals.filter(
     (rental) => rental.bookingStatus === "active",
   ).length;
-  const categoryCount = new Set(fakeEquipment.map((item) => item.category)).size;
-  const paidRevenue = fakeRentals
+  const categoryCount = new Set(equipment.map((item) => item.category)).size;
+  const paidRevenue = rentals
     .filter((rental) => rental.paymentStatus === "paid")
     .reduce((total, rental) => total + rental.bookingAmount, 0);
 
-  const updateField = (field: keyof EditableProfile, value: string) => {
+  const updateField = (field: keyof OwnerProfileInput, value: string) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!profile.name.trim() || !profile.email.trim()) {
       toast.error("Name and email are required.");
       return;
     }
 
-    // TODO: replace with `PATCH /api/owner/profile`.
-    console.info("Owner profile payload", profile);
-    toast.success("Profile updated", {
-      description: "Your changes have been saved.",
-    });
+    try {
+      await saveOwnerProfile(profile);
+      toast.success("Profile updated", {
+        description: "Your changes have been saved.",
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not save profile.",
+      );
+    }
   };
 
   return (
@@ -95,15 +105,23 @@ export default function OwnerProfileView() {
         <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="-mt-10 flex items-end gap-4">
             <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={fakeOwner.avatar}
-                alt={fakeOwner.name}
-                className="size-20 rounded-2xl border-4 border-card bg-secondary object-cover"
-              />
-              <span className="absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full border-2 border-card bg-success text-white">
-                <BadgeCheck className="size-3.5" />
-              </span>
+              {owner?.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={owner.avatar}
+                  alt={owner.name}
+                  className="size-20 rounded-2xl border-4 border-card bg-secondary object-cover"
+                />
+              ) : (
+                <span className="grid size-20 place-items-center rounded-2xl border-4 border-card bg-brand/10 font-heading text-xl font-bold text-brand">
+                  {getInitials(owner?.name ?? "Owner")}
+                </span>
+              )}
+              {owner?.verified ? (
+                <span className="absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full border-2 border-card bg-success text-white">
+                  <BadgeCheck className="size-3.5" />
+                </span>
+              ) : null}
             </div>
             <div className="pb-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -122,31 +140,20 @@ export default function OwnerProfileView() {
                 </span>
                 <span className="flex items-center gap-1">
                   <CalendarDays className="size-3.5" />
-                  Joined {formatDate(fakeOwner.joinedAt)}
+                  {owner?.joinedAt
+                    ? `Joined ${formatDate(owner.joinedAt)}`
+                    : "New member"}
                 </span>
               </p>
             </div>
           </div>
-
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() =>
-              toast.info("Image upload is not connected yet.", {
-                description: "This will use the ImgBB upload endpoint.",
-              })
-            }
-          >
-            <Camera />
-            Change photo
-          </Button>
         </div>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Listed equipment"
-          value={fakeEquipment.length}
+          value={equipment.length}
           hint={`Across ${categoryCount} categories`}
           icon={Building2}
         />
@@ -272,9 +279,21 @@ export default function OwnerProfileView() {
                   className="h-9"
                 />
               </div>
-              <div className="flex items-center gap-2 rounded-lg bg-success/10 p-2.5 text-xs text-emerald-700 dark:text-emerald-400">
-                <BadgeCheck className="size-4 shrink-0" />
-                Business verified by EquipRent
+              <div
+                className={`flex items-center gap-2 rounded-lg p-2.5 text-xs ${
+                  owner?.verified
+                    ? "bg-success/10 text-emerald-700 dark:text-emerald-400"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {owner?.verified ? (
+                  <BadgeCheck className="size-4 shrink-0" />
+                ) : (
+                  <ShieldCheck className="size-4 shrink-0" />
+                )}
+                {owner?.verified
+                  ? "Business verified by EquipRent"
+                  : "Business verification pending"}
               </div>
             </CardContent>
           </Card>
@@ -292,19 +311,20 @@ export default function OwnerProfileView() {
                 <span className="text-muted-foreground">Email</span>
                 <span className="flex items-center gap-1 font-medium text-success">
                   <BadgeCheck className="size-3.5" />
-                  Verified
+                  {owner?.email ? "On file" : "Not provided"}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Identity</span>
-                <span className="flex items-center gap-1 font-medium text-success">
-                  <BadgeCheck className="size-3.5" />
-                  Verified
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Verification</span>
+                <span className="font-medium">
+                  {owner?.verified ? "Verified" : "Pending"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Member since</span>
-                <span className="font-medium">{formatDate(fakeOwner.joinedAt)}</span>
+                <span className="font-medium">
+                  {owner?.joinedAt ? formatDate(owner.joinedAt) : "—"}
+                </span>
               </div>
               <p className="border-t border-border/70 pt-3 text-xs text-muted-foreground">
                 Contact support to change your account email or identity details.

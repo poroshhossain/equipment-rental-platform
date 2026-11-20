@@ -23,38 +23,47 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  bookingStatusMeta,
-  equipmentStatusMeta,
-  fakeEquipment,
-  fakeOwner,
-  fakeRentals,
-  monthlyRevenue,
-} from "@/lib/owner-data";
+  getAllEquipment,
+  getOwnerProfile,
+  getRentals,
+  getRevenue,
+} from "@/lib/api/ownerAction";
 import {
   formatCompactCurrency,
   formatCurrency,
   formatDateRange,
   getInitials,
 } from "@/lib/format";
+import { bookingStatusMeta, equipmentStatusMeta } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const OwnerDashboardPage = () => {
-  const activeRentals = fakeRentals.filter(
+// Live API data is loaded per request; allow the route to block on navigation.
+export const instant = false;
+
+const OwnerDashboardPage = async () => {
+  const [equipment, rentals, monthlyRevenue, profile] = await Promise.all([
+    getAllEquipment(),
+    getRentals(),
+    getRevenue(),
+    getOwnerProfile(),
+  ]);
+  const categoryCount = new Set(equipment.map((item) => item.category)).size;
+  const activeRentals = rentals.filter(
     (rental) => rental.bookingStatus === "active",
   ).length;
-  const pendingReview = fakeEquipment.filter(
-    (equipment) => equipment.status === "pending",
+  const pendingReview = equipment.filter(
+    (item) => item.status === "pending",
   );
-  const paidRevenue = fakeRentals
+  const paidRevenue = rentals
     .filter((rental) => rental.paymentStatus === "paid")
     .reduce((total, rental) => total + rental.bookingAmount, 0);
-  const recentRentals = [...fakeRentals]
+  const recentRentals = [...rentals]
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     .slice(0, 4);
-  const maxRevenue = Math.max(...monthlyRevenue.map((month) => month.amount));
+  const maxRevenue = Math.max(1, ...monthlyRevenue.map((month) => month.amount));
   const totalRevenue = monthlyRevenue.reduce(
     (total, month) => total + month.amount,
     0,
@@ -64,7 +73,7 @@ const OwnerDashboardPage = () => {
     <div className="space-y-5">
       <PageHeader
         eyebrow="Owner dashboard"
-        title={`Welcome back, ${fakeOwner.name.split(" ")[0]}`}
+        title={`Welcome back, ${profile?.name.split(" ")[0] ?? "Owner"}`}
         description="Here is how your equipment and rentals are performing this month."
         actions={
           <>
@@ -89,8 +98,8 @@ const OwnerDashboardPage = () => {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total equipment"
-          value={fakeEquipment.length}
-          hint="Across 4 categories"
+          value={equipment.length}
+          hint={`Across ${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
           icon={Package}
         />
         <StatCard
@@ -99,7 +108,6 @@ const OwnerDashboardPage = () => {
           hint="Out with customers"
           icon={CalendarClock}
           tone="success"
-          trend="+12%"
         />
         <StatCard
           label="Paid revenue"
@@ -131,60 +139,66 @@ const OwnerDashboardPage = () => {
                 <p className="font-heading text-xl font-bold">
                   {formatCurrency(totalRevenue)}
                 </p>
-                <p className="flex items-center justify-end gap-1 text-xs font-medium text-success">
+                <p className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
                   <TrendingUp className="size-3.5" />
-                  +18.2% vs last period
+                  Last 6 months
                 </p>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex h-48 items-end gap-3 pt-6 sm:gap-4">
-                {monthlyRevenue.map((month, index) => {
-                  const isLatest = index === monthlyRevenue.length - 1;
+              {monthlyRevenue.length === 0 ? (
+                <p className="py-12 text-center text-sm text-muted-foreground">
+                  No revenue data yet.
+                </p>
+              ) : (
+                <div className="flex h-48 items-end gap-3 pt-6 sm:gap-4">
+                  {monthlyRevenue.map((month, index) => {
+                    const isLatest = index === monthlyRevenue.length - 1;
 
-                  return (
-                    <div
-                      key={month.month}
-                      className="flex h-full flex-1 flex-col justify-end gap-2"
-                    >
-                      <div className="group relative flex flex-1 items-end">
-                        <div
-                          className={cn(
-                            "w-full rounded-t-lg transition-colors",
-                            isLatest
-                              ? "bg-brand"
-                              : "bg-brand/20 group-hover:bg-brand/40",
-                          )}
-                          style={{
-                            height: `${Math.round((month.amount / maxRevenue) * 100)}%`,
-                          }}
-                          title={`${month.month}: ${formatCurrency(month.amount)}`}
-                        />
+                    return (
+                      <div
+                        key={month.month}
+                        className="flex h-full flex-1 flex-col justify-end gap-2"
+                      >
+                        <div className="group relative flex flex-1 items-end">
+                          <div
+                            className={cn(
+                              "w-full rounded-t-lg transition-colors",
+                              isLatest
+                                ? "bg-brand"
+                                : "bg-brand/20 group-hover:bg-brand/40",
+                            )}
+                            style={{
+                              height: `${Math.round((month.amount / maxRevenue) * 100)}%`,
+                            }}
+                            title={`${month.month}: ${formatCurrency(month.amount)}`}
+                          />
+                          <span
+                            className={cn(
+                              "absolute inset-x-0 -top-6 text-center text-[11px] font-medium",
+                              isLatest
+                                ? "text-foreground"
+                                : "text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100",
+                            )}
+                          >
+                            {formatCompactCurrency(month.amount)}
+                          </span>
+                        </div>
                         <span
                           className={cn(
-                            "absolute inset-x-0 -top-6 text-center text-[11px] font-medium",
+                            "text-center text-xs",
                             isLatest
-                              ? "text-foreground"
-                              : "text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100",
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground",
                           )}
                         >
-                          {formatCompactCurrency(month.amount)}
+                          {month.month}
                         </span>
                       </div>
-                      <span
-                        className={cn(
-                          "text-center text-xs",
-                          isLatest
-                            ? "font-semibold text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {month.month}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -205,41 +219,47 @@ const OwnerDashboardPage = () => {
               </Link>
             </CardHeader>
             <div className="divide-y divide-border/70">
-              {recentRentals.map((rental) => {
-                const bookingMeta = bookingStatusMeta[rental.bookingStatus];
+              {recentRentals.length === 0 ? (
+                <p className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  No rentals yet. Bookings will appear here.
+                </p>
+              ) : (
+                recentRentals.map((rental) => {
+                  const bookingMeta = bookingStatusMeta[rental.bookingStatus];
 
-                return (
-                  <div
-                    key={rental.id}
-                    className="flex flex-wrap items-center gap-3 px-6 py-3.5 transition-colors hover:bg-secondary/30"
-                  >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">
-                      {getInitials(rental.customer.name)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {rental.customer.name}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {rental.equipmentName} ·{" "}
-                        {formatDateRange(rental.startDate, rental.endDate)}
-                      </p>
+                  return (
+                    <div
+                      key={rental.id}
+                      className="flex flex-wrap items-center gap-3 px-6 py-3.5 transition-colors hover:bg-secondary/30"
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">
+                        {getInitials(rental.customer.name)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {rental.customer.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {rental.equipmentName} ·{" "}
+                          {formatDateRange(rental.startDate, rental.endDate)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">
+                          {formatCurrency(rental.bookingAmount)}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Qty {rental.quantity}
+                        </p>
+                      </div>
+                      <StatusBadge
+                        label={bookingMeta.label}
+                        tone={bookingMeta.tone}
+                      />
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold">
-                        {formatCurrency(rental.bookingAmount)}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Qty {rental.quantity}
-                      </p>
-                    </div>
-                    <StatusBadge
-                      label={bookingMeta.label}
-                      tone={bookingMeta.tone}
-                    />
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </Card>
         </div>
@@ -259,35 +279,41 @@ const OwnerDashboardPage = () => {
               />
             </CardHeader>
             <div className="divide-y divide-border/70">
-              {pendingReview.slice(0, 4).map((equipment) => {
-                const statusMeta = equipmentStatusMeta[equipment.status];
+              {pendingReview.length === 0 ? (
+                <p className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  Nothing is waiting for review.
+                </p>
+              ) : (
+                pendingReview.slice(0, 4).map((equipment) => {
+                  const statusMeta = equipmentStatusMeta[equipment.status];
 
-                return (
-                  <div
-                    key={equipment.id}
-                    className="flex items-center gap-3 px-6 py-3"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={equipment.image}
-                      alt={equipment.name}
-                      className="size-9 shrink-0 rounded-lg bg-secondary object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {equipment.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {equipment.category}
-                      </p>
+                  return (
+                    <div
+                      key={equipment.id}
+                      className="flex items-center gap-3 px-6 py-3"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={equipment.image}
+                        alt={equipment.name}
+                        className="size-9 shrink-0 rounded-lg bg-secondary object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {equipment.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {equipment.category}
+                        </p>
+                      </div>
+                      <StatusBadge
+                        label={statusMeta.label}
+                        tone={statusMeta.tone}
+                      />
                     </div>
-                    <StatusBadge
-                      label={statusMeta.label}
-                      tone={statusMeta.tone}
-                    />
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
             <div className="border-t border-border/70 p-4">
               <Link
