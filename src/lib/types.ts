@@ -52,6 +52,25 @@ export interface Equipment {
   terms: string;
   status: EquipmentStatus;
   createdAt: string;
+  popularity?: number;
+  owner?: OwnerProfile;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  order: number;
+}
+
+export interface Review {
+  id: string;
+  name: string;
+  role: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 /** Request body for creating or updating equipment. */
@@ -91,6 +110,38 @@ export interface MonthlyRevenue {
   amount: number;
 }
 
+export interface BookingInput {
+  equipmentId: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  quantity: number;
+  contactNumber: string;
+  deliveryAddress: string;
+  notes?: string;
+  customer?: { name: string; email: string };
+}
+
+export interface Booking {
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  equipmentImage: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  quantity: number;
+  rentalType: RentalType;
+  days: number;
+  totalAmount: number;
+  contactNumber: string;
+  deliveryAddress: string;
+  notes: string;
+  status: string;
+  paymentStatus: PaymentStatus;
+  createdAt: string;
+}
+
 export const EQUIPMENT_CATEGORIES = [
   "Construction",
   "Power Tools",
@@ -99,6 +150,16 @@ export const EQUIPMENT_CATEGORIES = [
   "Gardening",
   "Transport",
 ] as const;
+
+/** Links the seeded marketing categories to equipment category values. */
+export const CATEGORY_BY_SLUG: Record<string, string> = {
+  construction: "Construction",
+  photography: "Photography",
+  transport: "Transport",
+  agriculture: "Gardening",
+  electronics: "Power Tools",
+  events: "Events",
+};
 
 export const RENTAL_TYPE_OPTIONS: {
   value: RentalType;

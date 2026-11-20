@@ -13,9 +13,9 @@ import { authClient } from "@/lib/auth-client";
 const links = [
   { href: "/", label: "Home" },
   { href: "/equipments", label: "All Equipment" },
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/about", label: "About us" },
-  { href: "/contact", label: "Contact Us" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#why-choose-us", label: "Why choose us" },
+  { href: "/#contact", label: "Contact Us" },
 ];
 
 const Navbar = () => {

@@ -1,10 +1,14 @@
 import type {
+  Booking,
+  BookingInput,
+  Category,
   Equipment,
   EquipmentRental,
   MonthlyRevenue,
   NewEquipment,
   OwnerProfile,
   OwnerProfileInput,
+  Review,
 } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -64,3 +68,58 @@ export const saveOwnerProfile = (profile: OwnerProfileInput) =>
     method: "PATCH",
     body: JSON.stringify(profile),
   });
+
+/** Public listing queries: status filter, MongoDB limit and sorting. */
+export async function getEquipmentList(
+  query: { status?: string; limit?: number; sort?: "popular" | "recent" } = {},
+): Promise<Equipment[]> {
+  const params = new URLSearchParams();
+  if (query.status) params.set("status", query.status);
+  if (query.limit) params.set("limit", String(query.limit));
+  if (query.sort) params.set("sort", query.sort);
+  const search = params.toString();
+
+  return read<Equipment[]>(
+    `/api/v1/equipments${search ? `?${search}` : ""}`,
+    [],
+  );
+}
+
+export const getEquipmentById = (id: string) =>
+  read<Equipment | null>(`/api/v1/equipments/${id}`, null);
+
+export const getCategories = () => read<Category[]>("/api/v1/categories", []);
+export const getReviews = () => read<Review[]>("/api/v1/reviews", []);
+
+export const getFavorites = (userId: string) =>
+  read<Equipment[]>(
+    `/api/v1/customer/favorites?userId=${encodeURIComponent(userId)}`,
+    [],
+  );
+
+export const addFavorite = (userId: string, equipmentId: string) =>
+  request("/api/v1/customer/favorites", {
+    method: "POST",
+    body: JSON.stringify({ userId, equipmentId }),
+  });
+
+export const removeFavorite = (userId: string, equipmentId: string) =>
+  request(
+    `/api/v1/customer/favorites/${equipmentId}?userId=${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
+  );
+
+export const createBooking = (booking: BookingInput) =>
+  request<Booking>("/api/v1/customer/bookings", {
+    method: "POST",
+    body: JSON.stringify(booking),
+  });
+
+export const getBooking = (id: string) =>
+  read<Booking | null>(`/api/v1/customer/bookings/${id}`, null);
+
+export const getUserBookings = (userId: string) =>
+  read<Booking[]>(
+    `/api/v1/customer/bookings?userId=${encodeURIComponent(userId)}`,
+    [],
+  );

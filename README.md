@@ -1,81 +1,96 @@
 # EquipRent — Equipment Rental Platform
 
-A Next.js + Express equipment rental marketplace. Owners manage listings, rentals
-and their profile from a role-aware dashboard; data is stored in MongoDB and served
-by a small Express API.
+A Next.js + Express equipment rental marketplace. Visitors browse equipment,
+logged-in customers save favorites and book gear, and owners manage their fleet
+from a role-aware dashboard. All records live in MongoDB behind a small Express API.
 
-> **Current stage:** the owner dashboard is wired to the backend. Equipment, rentals,
-> owner profile and revenue all come from the API — there is no mock data in the
-> front-end. Bookings are not created anywhere yet, so the rentals/revenue views stay
-> empty until rental records are added to MongoDB.
+> **Current stage:** public home/catalog, details, favorites, booking flow and owner
+> dashboard are wired to the API. The payment page is a booking summary only — no
+> payment gateway is connected yet.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                        |
-| ---------- | ------------------------------------------------- |
+| Layer      | Technology                                         |
+| ---------- | -------------------------------------------------- |
 | Frontend   | Next.js 16 (App Router, Cache Components, Turbopack) |
-| Language   | TypeScript                                        |
-| Styling    | Tailwind CSS v4 + shadcn/ui (base-ui primitives)  |
-| Auth       | better-auth (email/password + Google)             |
-| Forms      | React Hook Form + Zod                             |
-| Backend    | Express 5 + MongoDB (separate project)            |
-| Icons      | lucide-react                                      |
-| Toasts     | Sonner                                            |
+| Language   | TypeScript                                         |
+| Styling    | Tailwind CSS v4 + shadcn/ui (base-ui primitives)   |
+| Animation  | Framer Motion                                      |
+| Auth       | better-auth (email/password + Google)              |
+| Forms      | React Hook Form + Zod                              |
+| Backend    | Express 5 + MongoDB (separate project)             |
+| Icons      | lucide-react                                       |
+| Toasts     | Sonner                                             |
 
 ---
 
 ## Projects
 
-| Path                                                                     | What it is                          |
-| ------------------------------------------------------------------------ | ----------------------------------- |
-| `C:\Projects\a\a9\equipment-rental-platform`                              | Next.js front-end (this project)    |
-| `C:\Projects\a\a9\equipment-rental-platform-server`                       | Express + MongoDB API               |
+| Path                                               | What it is                       |
+| -------------------------------------------------- | -------------------------------- |
+| `C:\Projects\a\a9\equipment-rental-platform`        | Next.js front-end (this project) |
+| `C:\Projects\a\a9\equipment-rental-platform-server` | Express + MongoDB API            |
 
-Both projects connect to the same MongoDB database (`equipment-rental-platform`).
+Both projects use the same MongoDB database (`equipment-rental-platform`).
 
 ---
 
 ## Features
 
+### Public Site
+
+- **Home page** — hero banner, featured equipment (6 approved items via MongoDB
+  `limit`), categories, why-choose-us, popular equipment, recently added,
+  how-it-works and customer reviews. Framer Motion animates the banner, equipment
+  cards, categories and reviews.
+- **Equipment cards** — clicking *View details* sends logged-out visitors to
+  `/login?next=…`; logged-in visitors go to the details page.
+- **Catalog** (`/equipments`) — search, category filter and approved listings.
+- **Footer** — navigation, account links and contact anchor.
+
+### Customer (private)
+
+- **Equipment details** — image, full information, rental terms, owner details,
+  add/remove favorites and a **Book now** modal.
+- **Booking modal** — start/end date, quantity, contact number, delivery address
+  and notes. The total is calculated from rental duration × rental type × quantity.
+  Availability is checked on the server and units are reserved.
+- **Payment page** — booking summary with the saved total and a clear notice that
+  gateway integration is not connected yet.
+- **Favorites** — saved in MongoDB and listed in `/dashboard/favorites` with a
+  remove action.
+
 ### Owner Dashboard
 
-- **Overview** — stats, 6-month revenue chart, recent rentals, pending-review queue
-  and quick actions, all from the API.
-- **Add Equipment** — validated listing form (name, description, category, brand,
-  model, location, price, rental type, quantity, condition, image URL, terms).
-- **My Equipment** — searchable/filterable table of live listings with details,
-  update and delete actions.
-- **My Equipment Rental** — table of bookings with payment and booking status.
-- **My Profile** — editable owner profile saved through the API.
+- Overview stats, 6-month revenue chart, rentals, pending-review queue.
+- Add / update / delete equipment, searchable equipment table, editable profile.
 
 ### Dashboard Shell
 
-- Collapsible sidebar, role-aware navigation and sticky header.
-- better-auth session used for sign-out and the role chip.
-
-### Public Site & Auth
-
-- Landing page shell, public header/navbar, login and registration screens with
-  validation and Google sign-in.
+- Collapsible sidebar, role-aware navigation, sticky header and session sign-out.
 
 ---
 
 ## Routes
 
-| Route                               | Description                        |
-| ----------------------------------- | ---------------------------------- |
-| `/`                                 | Public landing page                |
-| `/login`, `/register`               | Authentication screens             |
-| `/dashboard/owner`                  | Owner overview                     |
-| `/dashboard/add-equipment`          | Create a new equipment listing     |
-| `/dashboard/my-equipment`           | Owner's equipment table            |
-| `/dashboard/my-equipment/[id]/edit` | Update a listing                   |
-| `/dashboard/my-equipment-rentals`   | Rentals/bookings for owner gear    |
-| `/dashboard/my-profile`             | Owner profile                      |
-| `/dashboard/customer`               | Customer dashboard (placeholder)   |
-| `/dashboard/admin`                  | Admin dashboard (placeholder)      |
+| Route                               | Description                              |
+| ----------------------------------- | ---------------------------------------- |
+| `/`                                 | Public home page                         |
+| `/equipments`                       | Browse approved equipment                |
+| `/equipments/[id]`                  | Equipment details (login required)       |
+| `/payment?booking=…`                | Booking/payment summary (login required) |
+| `/login`, `/register`               | Authentication screens                   |
+| `/dashboard/customer`               | Customer dashboard                       |
+| `/dashboard/favorites`              | Saved favorites                          |
+| `/dashboard/owner`                  | Owner overview                           |
+| `/dashboard/add-equipment`          | Create a listing                         |
+| `/dashboard/my-equipment`           | Owner equipment table                    |
+| `/dashboard/my-equipment/[id]/edit` | Update a listing                         |
+| `/dashboard/my-equipment-rentals`   | Owner rentals                            |
+| `/dashboard/my-profile`             | Owner profile                            |
+| `/dashboard/admin`                  | Admin dashboard (placeholder)            |
 
 ---
 
@@ -85,58 +100,69 @@ Both projects connect to the same MongoDB database (`equipment-rental-platform`)
 equipment-rental-platform/
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/                     # Login & register
-│   │   ├── (dashboard)/dashboard/      # Owner pages + dashboard shell
-│   │   ├── (public)/                   # Landing page
-│   │   └── api/auth/[...all]/          # better-auth handler
-│   ├── components/                     # auth, dashboard, public, ui
-│   ├── hooks/                          # use-mobile
+│   │   ├── (auth)/                    # Login & register
+│   │   ├── (dashboard)/dashboard/     # Owner/customer pages + shell
+│   │   ├── (public)/                  # Home, catalog, details, payment
+│   │   └── api/auth/[...all]/         # better-auth handler
+│   ├── components/
+│   │   ├── public/
+│   │   │   ├── header/               # Navbar, logo
+│   │   │   ├── footer/               # Site footer
+│   │   │   ├── home/                 # Banner, cards, categories, sections
+│   │   │   ├── equipment/            # Details, booking modal, payment summary
+│   │   │   └── AuthGuard.tsx         # Redirects logged-out visitors
+│   │   ├── dashboard/                # Dashboard shell + owner/customer views
+│   │   └── ui/                       # shadcn/base-ui primitives
 │   └── lib/
-│       ├── api/ownerAction.ts          # All backend requests + data normalization
-│       ├── auth.ts / auth-client.ts    # better-auth config
-│       ├── dashboard-nav.ts            # Role-based navigation config
-│       ├── format.ts                   # Currency, date and initial helpers
-│       ├── types.ts                    # Shared types, options and status labels
-│       └── validations/                # Zod schemas (auth, equipment)
+│       ├── api/ownerAction.ts        # All backend calls
+│       ├── auth.ts / auth-client.ts  # better-auth config
+│       ├── types.ts                  # Shared types, options, labels
+│       ├── format.ts                 # Formatting helpers
+│       └── validations/              # Zod schemas
 └── README.md
 
 equipment-rental-platform-server/
 └── src/
-    ├── app.ts                          # Express app and route mounting
-    ├── server.ts                       # Starts the server on PORT
-    ├── config/db.ts                    # MongoDB connection
+    ├── app.ts                        # Route mounting
+    ├── config/                       # DB connection + id serialization
+    ├── scripts/seed.ts               # Seeds categories and reviews
     └── modules/
-        ├── users/                      # GET /api/v1/users
-        └── owner/
-            ├── equipment/              # GET/POST/PATCH/DELETE equipments
-            ├── rental/                 # GET owner rentals
-            ├── profile/                # GET/PATCH owner profile
-            └── revenue/                # GET 6-month revenue from paid rentals
+        ├── users/
+        ├── content/                  # Categories + reviews
+        ├── owner/                    # Equipment, rentals, profile, revenue
+        └── customer/                 # Favorites + bookings
 ```
 
 ---
 
 ## Backend API
 
-The front-end calls the API through `src/lib/api/ownerAction.ts`. The backend sends
-plain objects with an `id` field and the client only unwraps
-`{ success, message, data }`. If the API is offline, reads return empty lists so pages
-still render with empty states.
+The client unwraps the standard `{ success, message, data }` envelope. Reads fall
+back to empty values if the API is offline; writes show a connection error.
 
-| Method   | Endpoint                    | Used by                         |
-| -------- | --------------------------- | ------------------------------- |
-| `GET`    | `/api/v1/equipments`        | Overview, My Equipment, edit, profile stats |
-| `POST`   | `/api/v1/equipments`        | Add Equipment                   |
-| `PATCH`  | `/api/v1/equipments/:id`    | Update listing                  |
-| `DELETE` | `/api/v1/equipments/:id`    | Delete listing                  |
-| `GET`    | `/api/v1/owner/rentals`     | Rentals table, profile stats    |
-| `GET`    | `/api/v1/owner/profile`     | Owner name, profile form        |
-| `PATCH`  | `/api/v1/owner/profile`     | Save profile                    |
-| `GET`    | `/api/v1/owner/revenue`     | Overview revenue chart          |
+| Method   | Endpoint                              | Used by                        |
+| -------- | ------------------------------------- | ------------------------------ |
+| `GET`    | `/api/v1/equipments?status=&limit=&sort=` | Home, catalog, dashboard   |
+| `GET`    | `/api/v1/equipments/:id`              | Details page                   |
+| `POST`   | `/api/v1/equipments`                  | Add equipment                  |
+| `PATCH`  | `/api/v1/equipments/:id`              | Update listing                 |
+| `DELETE` | `/api/v1/equipments/:id`              | Delete listing                 |
+| `GET`    | `/api/v1/categories`                  | Home categories                |
+| `GET`    | `/api/v1/reviews`                     | Home reviews                   |
+| `GET`    | `/api/v1/owner/rentals`               | Owner rentals and stats        |
+| `GET`/`PATCH` | `/api/v1/owner/profile`         | Owner profile                  |
+| `GET`    | `/api/v1/owner/revenue`               | Revenue chart                  |
+| `GET`/`POST` | `/api/v1/customer/favorites`     | Save/list favorites            |
+| `DELETE` | `/api/v1/customer/favorites/:equipmentId` | Remove favorite         |
+| `GET`/`POST` | `/api/v1/customer/bookings`     | Create/list bookings           |
+| `GET`    | `/api/v1/customer/bookings/:id`       | Payment summary                |
 
-MongoDB collections: `equipments`, `rentals`, `ownerProfiles` (single owner document).
-The revenue endpoint sums `bookingAmount` from rentals with `paymentStatus: "paid"`
-over the last six calendar months.
+MongoDB collections: `equipments`, `rentals`, `ownerProfiles`, `categories`,
+`reviews`, `favorites`, `bookings`.
+
+Bookings validate dates and available quantity, calculate `days × units × quantity`
+(units = days for daily, weeks for weekly, months for monthly), reserve the units,
+and also insert a rental row so it appears in the owner dashboard.
 
 ---
 
@@ -145,9 +171,9 @@ over the last six calendar months.
 ### Prerequisites
 
 - Node.js 20+
-- A running MongoDB instance (local or Atlas)
+- MongoDB (local or Atlas)
 
-### Backend setup
+### Backend
 
 In `equipment-rental-platform-server`, create `.env`:
 
@@ -156,14 +182,13 @@ PORT=5000
 DB_URL="mongodb://localhost:27017"
 ```
 
-Then run:
-
 ```bash
 npm install
-npm run dev        # http://localhost:5000
+npm run seed     # inserts 6 categories and 4 reviews (once)
+npm run dev      # http://localhost:5000
 ```
 
-### Front-end setup
+### Front-end
 
 In `equipment-rental-platform`, create `.env`:
 
@@ -177,45 +202,34 @@ GOOGLE_CLIENT_SECRET=""
 NEXT_PUBLIC_API_URL="http://localhost:5000"
 ```
 
-Then run:
-
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev      # http://localhost:3000
 ```
 
-> Start the backend first to see live data. If it is not running, the dashboard still
-> loads with empty states; create/update/save actions will show a connection error.
+> Start the backend first for live data. If it is offline, pages still load with
+> empty states; create/save actions will show a connection error. Log in before
+> opening equipment details, favorites or payment pages.
 
 ### Scripts
 
-**Front-end**
-
-```bash
-npm run dev      # Dev server
-npm run build    # Production build
-npm run start    # Production server
-npm run lint     # ESLint
-```
-
-**Backend**
-
-```bash
-npm run dev        # Dev server with reload
-npm run build      # Compile TypeScript to dist/
-npm run start      # Production server
-npm run typecheck  # Type check only
-```
+| Front-end         | Backend              |
+| ----------------- | -------------------- |
+| `npm run dev`     | `npm run dev`        |
+| `npm run build`   | `npm run build`      |
+| `npm run start`   | `npm run start`      |
+| `npm run lint`    | `npm run typecheck`  |
+|                   | `npm run seed`       |
 
 ---
 
 ## Roadmap
 
-- [x] Load, create, update and delete equipment through the API.
-- [x] Serve rentals, owner profile and revenue from the backend.
-- [ ] Add a booking flow that creates rental records.
-- [ ] Add server-side auth/role guards for dashboard routes.
-- [ ] Complete the customer dashboard (browse, favorites, checkout).
-- [ ] Complete the admin dashboard (users, approvals, reports).
-- [ ] Connect image uploads and payment status updates.
-- [ ] Add automated tests for forms, tables and endpoints.
+- [x] Public home, catalog, details, favorites and booking flow.
+- [x] Seed categories and reviews from MongoDB.
+- [x] Owner dashboard fully backed by the API.
+- [ ] Connect a real payment gateway on `/payment`.
+- [ ] Add customer "My rentals" page.
+- [ ] Add server-side auth guards for private routes.
+- [ ] Add image uploads and admin approval UI.
+- [ ] Add automated tests.
