@@ -11,8 +11,8 @@ export default function FeaturedEquipment({ items }: { items: Equipment[] }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        whileInView={{ y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
         className="mb-8 flex flex-wrap items-end justify-between gap-3"
@@ -34,11 +34,17 @@ export default function FeaturedEquipment({ items }: { items: Equipment[] }) {
         </Link>
       </motion.div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <EquipmentCard key={item.id} equipment={item} />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+          No featured equipment yet. Check back soon.
+        </p>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <EquipmentCard key={item.id} equipment={item} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

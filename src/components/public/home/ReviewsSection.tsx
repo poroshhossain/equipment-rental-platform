@@ -10,8 +10,8 @@ export default function ReviewsSection({ items }: { items: Review[] }) {
     <section className="bg-secondary/30 py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
           className="mb-8 space-y-2 text-center"
@@ -24,12 +24,17 @@ export default function ReviewsSection({ items }: { items: Review[] }) {
           </p>
         </motion.div>
 
+        {items.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground">
+            No reviews yet.
+          </p>
+        ) : (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {items.map((review, index) => (
             <motion.figure
               key={review.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ y: 20 }}
+              whileInView={{ y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
               className="flex h-full flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-sm"
@@ -56,6 +61,7 @@ export default function ReviewsSection({ items }: { items: Review[] }) {
             </motion.figure>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

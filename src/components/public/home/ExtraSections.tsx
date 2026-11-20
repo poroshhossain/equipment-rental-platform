@@ -18,8 +18,8 @@ function EquipmentRow({
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        whileInView={{ y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
         className="mb-8 space-y-2"
@@ -28,11 +28,17 @@ function EquipmentRow({
         <p className="text-sm text-muted-foreground">{description}</p>
       </motion.div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <EquipmentCard key={item.id} equipment={item} />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+          No equipment to show yet.
+        </p>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <EquipmentCard key={item.id} equipment={item} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -80,8 +86,8 @@ export function HowItWorks() {
     <section id="how-it-works" className="border-y border-border bg-card py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
           className="mb-8 space-y-2 text-center"
@@ -98,8 +104,8 @@ export function HowItWorks() {
           {steps.map(({ icon: Icon, title, text }, index) => (
             <motion.div
               key={title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ y: 20 }}
+              whileInView={{ y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               className="rounded-xl border border-border bg-background p-6 text-center"

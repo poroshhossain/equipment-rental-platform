@@ -28,8 +28,8 @@ export default function CategoriesSection({ items }: { items: Category[] }) {
     <section className="bg-secondary/30 py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 16 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
           className="mb-8 space-y-2 text-center"
@@ -42,6 +42,11 @@ export default function CategoriesSection({ items }: { items: Category[] }) {
           </p>
         </motion.div>
 
+        {items.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground">
+            Categories are not available yet.
+          </p>
+        ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           {items.map((category, index) => {
             const Icon = icons[category.icon] ?? Construction;
@@ -52,8 +57,8 @@ export default function CategoriesSection({ items }: { items: Category[] }) {
             return (
               <motion.div
                 key={category.id}
-                initial={{ opacity: 0, scale: 0.92 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ scale: 0.96 }}
+                whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: index * 0.06 }}
               >
@@ -70,6 +75,7 @@ export default function CategoriesSection({ items }: { items: Category[] }) {
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );
