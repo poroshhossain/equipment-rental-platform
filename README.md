@@ -62,7 +62,8 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 - **Equipment cards** — clicking *View details* sends logged-out visitors to
   `/login?next=…`; logged-in visitors go to the details page.
 - **Catalog** (`/equipments`) — 3-column grid of approved equipment with backend-driven
-  search (name/location), filters (category, rental type, price range, availability)
+  search (name/category/location), filters (category, rental type, price range,
+  availability)
   and sorting (price ascending/descending, recently added). Filter state lives in the
   URL so results are shareable.
 - **Footer** — navigation, account links and contact anchor.

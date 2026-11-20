@@ -135,7 +135,7 @@ function FilterPanel({
             id="catalog-search"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Name or location…"
+            placeholder="Name, category or location…"
             className="h-9 pl-9"
           />
         </div>
