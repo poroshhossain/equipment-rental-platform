@@ -8,6 +8,7 @@ import { Loader2, LogOut, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/theme/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 
 const links = [
@@ -120,7 +121,10 @@ const Navbar = () => {
         {links.map((link) => navLink(link.href, link.label))}
       </div>
 
-      <div className="hidden items-center lg:flex">{authActions}</div>
+      <div className="hidden items-center gap-2 lg:flex">
+        <ThemeToggle />
+        {authActions}
+      </div>
 
       {/* Mobile menu trigger */}
       <button
@@ -138,7 +142,10 @@ const Navbar = () => {
         <div className="absolute inset-x-0 top-16 border-b border-border bg-background shadow-lg lg:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6">
             {links.map((link) => navLink(link.href, link.label))}
-            <div className="mt-3 border-t border-border pt-3">{authActions}</div>
+            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+              <ThemeToggle />
+              {authActions}
+            </div>
           </div>
         </div>
       )}

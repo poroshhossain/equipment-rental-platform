@@ -6,6 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import ThemeToggle from "@/components/theme/theme-toggle";
 import { findDashboardNavItem, normalizeDashboardRole } from "@/lib/dashboard-nav";
 import { authClient } from "@/lib/auth-client";
 
@@ -33,6 +34,7 @@ export default function DashboardHeader() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         {session?.user ? (
           <span className="hidden rounded-full border border-border bg-secondary/60 px-2.5 py-1 text-[11px] font-medium capitalize text-muted-foreground sm:inline-flex">
             {role}

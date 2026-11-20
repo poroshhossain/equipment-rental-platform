@@ -66,6 +66,8 @@ import {
 interface EquipmentFormProps {
   equipment?: Equipment;
   owner: OwnerProfile | null;
+  /** Where to send the user after saving or cancelling. */
+  redirectTo?: string;
 }
 
 const categoryOptions = EQUIPMENT_CATEGORIES.map((category) => ({
@@ -246,9 +248,14 @@ function EquipmentImageField({
   );
 }
 
-export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) {
+export default function EquipmentForm({
+  equipment,
+  owner,
+  redirectTo = "/dashboard/my-equipment",
+}: EquipmentFormProps) {
   const router = useRouter();
   const isEditing = Boolean(equipment);
+  const isAdminContext = redirectTo.startsWith("/dashboard/all-equipment");
 
   const {
     register,
@@ -309,7 +316,7 @@ export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) 
         },
       );
 
-      router.push("/dashboard/my-equipment");
+      router.push(redirectTo);
       router.refresh();
     } catch (error) {
       toast.error(
@@ -326,7 +333,7 @@ export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) 
     >
       <div className="space-y-5">
         <PageHeader
-          eyebrow="Owner dashboard"
+          eyebrow={isAdminContext ? "Admin dashboard" : "Owner dashboard"}
           title={isEditing ? "Update equipment" : "Add equipment"}
           description={
             isEditing
@@ -338,10 +345,10 @@ export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) 
               variant="outline"
               size="lg"
               nativeButton={false}
-              render={<Link href="/dashboard/my-equipment" />}
+              render={<Link href={redirectTo} />}
             >
               <ArrowLeft />
-              Back to my equipment
+              {isAdminContext ? "Back to all equipment" : "Back to my equipment"}
             </Button>
           }
         />
@@ -666,7 +673,7 @@ export default function EquipmentForm({ equipment, owner }: EquipmentFormProps) 
             variant="outline"
             size="lg"
             nativeButton={false}
-            render={<Link href="/dashboard/my-equipment" />}
+            render={<Link href={redirectTo} />}
           >
             Cancel
           </Button>
