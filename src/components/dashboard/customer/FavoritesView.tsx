@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -20,7 +21,14 @@ import { authClient } from "@/lib/auth-client";
 import { formatCurrency } from "@/lib/format";
 import type { Equipment } from "@/lib/types";
 
-const headings = ["Equipment", "Category", "Rental price", "Availability", "Actions"];
+const headings = [
+  "Equipment",
+  "Category",
+  "Rental price",
+  "Availability",
+  "All fields",
+  "Actions",
+];
 
 export default function FavoritesView() {
   const { data: session, isPending } = authClient.useSession();
@@ -115,6 +123,9 @@ export default function FavoritesView() {
                   label={item.availableQuantity > 0 ? "Available" : "Out of stock"}
                   tone={item.availableQuantity > 0 ? "success" : "danger"}
                 />
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <RecordDetails record={item} title={item.name} />
               </TableCell>
               <TableCell className="px-4 py-3">
                 <div className="flex items-center gap-2">

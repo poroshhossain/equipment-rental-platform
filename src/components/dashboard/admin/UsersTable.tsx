@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Trash2, UserCog } from "lucide-react";
 
+import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,6 +131,7 @@ export default function UsersTable() {
                   {user.createdAt ? formatDate(user.createdAt) : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
+                  <RecordDetails record={user} title={user.name} />
                   <Button
                     variant="outline"
                     size="sm"

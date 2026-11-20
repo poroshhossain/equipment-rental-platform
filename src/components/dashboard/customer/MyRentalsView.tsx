@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarClock } from "lucide-react";
 
+import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ const headings = [
   "Total amount",
   "Payment",
   "Booking status",
+  "All fields",
 ];
 
 export default function MyRentalsView() {
@@ -112,6 +114,9 @@ export default function MyRentalsView() {
                 </TableCell>
                 <TableCell className="px-4 py-3">
                   <StatusBadge label={status.label} tone={status.tone} />
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <RecordDetails record={booking} title={booking.equipmentName} />
                 </TableCell>
               </TableRow>
             );

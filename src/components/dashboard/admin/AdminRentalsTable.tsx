@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import RecordDetails from "@/components/dashboard/RecordDetails";
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import {
 import { getAdminRentals, updateRentalStatus } from "@/lib/api/ownerAction";
 import {
   formatCurrency,
+  formatDate,
   formatDateRange,
   getDurationInDays,
   getInitials,
@@ -21,6 +23,7 @@ import {
 import {
   bookingStatusMeta,
   paymentStatusMeta,
+  rentalTypeLabels,
   type AdminRental,
   type BookingStatus,
   type PaymentStatus,
@@ -70,9 +73,13 @@ export default function AdminRentalsTable() {
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Owner</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Equipment</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Rental duration</TableHead>
+            <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Rental type</TableHead>
+            <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Qty</TableHead>
+            <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Booking date</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Booking amount</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Payment</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Booking status</TableHead>
+            <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Details</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,6 +120,13 @@ export default function AdminRentalsTable() {
                 <p className="text-xs text-muted-foreground">
                   {getDurationInDays(rental.startDate, rental.endDate)} day(s)
                 </p>
+              </TableCell>
+              <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                {rentalTypeLabels[rental.rentalType]}
+              </TableCell>
+              <TableCell className="px-4 py-3 text-sm">{rental.quantity}</TableCell>
+              <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                {rental.createdAt ? formatDate(rental.createdAt) : "—"}
               </TableCell>
               <TableCell className="px-4 py-3 text-sm font-semibold">
                 {formatCurrency(rental.bookingAmount)}
@@ -156,6 +170,9 @@ export default function AdminRentalsTable() {
                     </option>
                   ))}
                 </select>
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <RecordDetails record={rental} title={rental.equipmentName} />
               </TableCell>
             </TableRow>
           ))}

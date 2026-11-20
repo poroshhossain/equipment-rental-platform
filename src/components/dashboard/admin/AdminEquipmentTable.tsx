@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 
+import RecordDetails from "@/components/dashboard/RecordDetails";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,9 +29,10 @@ import {
   getAdminEquipment,
   setEquipmentStatus,
 } from "@/lib/api/ownerAction";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import {
   equipmentStatusMeta,
+  rentalTypeLabels,
   type Equipment,
   type EquipmentStatus,
 } from "@/lib/types";
@@ -90,6 +92,10 @@ export default function AdminEquipmentTable() {
               <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Equipment</TableHead>
               <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Category</TableHead>
               <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Price</TableHead>
+              <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Rental type</TableHead>
+              <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Available</TableHead>
+              <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Owner</TableHead>
+              <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Listed</TableHead>
               <TableHead className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Status</TableHead>
               <TableHead className="px-4 py-3 text-right text-xs font-semibold tracking-wide text-muted-foreground uppercase">Actions</TableHead>
             </TableRow>
@@ -124,11 +130,24 @@ export default function AdminEquipmentTable() {
                   <TableCell className="px-4 py-3 text-sm font-semibold">
                     {formatCurrency(item.rentalPrice)}
                   </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {rentalTypeLabels[item.rentalType]}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm">
+                    {item.availableQuantity} / {item.totalQuantity}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {item.owner?.name ?? "—"}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {item.createdAt ? formatDate(item.createdAt) : "—"}
+                  </TableCell>
                   <TableCell className="px-4 py-3">
                     <StatusBadge label={meta.label} tone={meta.tone} />
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      <RecordDetails record={item} title={item.name} />
                       <Button
                         size="sm"
                         variant="outline"

@@ -97,7 +97,8 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 
 - Overview with totals for users, equipment and rentals.
 - **All Users** — table of registered accounts with role changes and a manage
-  dialog (role buttons + delete user, including auth records).
+  dialog (role buttons + delete user, including auth records). Every table row has
+  an *all fields* panel showing the full Mongo record, including nested objects.
 - **All Equipment** — every listing with approve/reject, update and delete actions.
 - **All Rentals** — all bookings with customer/owner/equipment details, duration,
   amount and editable payment/booking statuses.
@@ -243,8 +244,9 @@ DB_URL="mongodb://localhost:27017"
 
 ```bash
 npm install
-npm run seed     # inserts 6 categories and 4 reviews (once)
-npm run dev      # http://localhost:5000
+npm run seed       # inserts 6 categories and 4 reviews (once)
+npm run seed:demo  # optional: dummy users, equipment, rentals, bookings, payments, favorites
+npm run dev        # http://localhost:5000
 ```
 
 ### Front-end
@@ -278,7 +280,7 @@ npm run dev      # http://localhost:3000
 | `npm run build`   | `npm run build`      |
 | `npm run start`   | `npm run start`      |
 | `npm run lint`    | `npm run typecheck`  |
-|                   | `npm run seed`       |
+|                   | `npm run seed` / `seed:demo` |
 
 ---
 
