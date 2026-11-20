@@ -46,9 +46,6 @@ async function read<T>(path: string, fallback: T): Promise<T> {
   }
 }
 
-export const getAllEquipment = () => read<Equipment[]>("/api/v1/equipments", []);
-export const getRentals = () =>
-  read<EquipmentRental[]>("/api/v1/owner/rentals", []);
 export const getRevenue = () =>
   read<MonthlyRevenue[]>("/api/v1/owner/revenue", []);
 export const getOwnerProfile = () =>
