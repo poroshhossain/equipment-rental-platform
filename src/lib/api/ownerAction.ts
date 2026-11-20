@@ -1,4 +1,5 @@
 import type {
+  AdminAnalytics,
   AdminRental,
   AdminUser,
   Booking,
@@ -8,6 +9,7 @@ import type {
   EquipmentRental,
   MonthlyRevenue,
   NewEquipment,
+  OwnerAnalytics,
   OwnerProfile,
   OwnerProfileInput,
   Review,
@@ -222,6 +224,30 @@ export const saveUserProfile = (profile: UserProfile, token?: string) =>
     "/api/v1/profile",
     token,
     { method: "PATCH", body: JSON.stringify(profile) },
+  );
+
+export const getAdminAnalytics = (token?: string) =>
+  read<AdminAnalytics | null>("/api/v1/admin/analytics", null, token);
+
+export const getOwnerEquipment = (ownerEmail: string, token?: string) =>
+  read<Equipment[]>(
+    `/api/v1/owner/equipments?ownerEmail=${encodeURIComponent(ownerEmail)}`,
+    [],
+    token,
+  );
+
+export const getOwnerRentals = (ownerEmail: string, token?: string) =>
+  read<EquipmentRental[]>(
+    `/api/v1/owner/rentals?ownerEmail=${encodeURIComponent(ownerEmail)}`,
+    [],
+    token,
+  );
+
+export const getOwnerAnalytics = (ownerEmail: string, token?: string) =>
+  read<OwnerAnalytics | null>(
+    `/api/v1/owner/analytics?ownerEmail=${encodeURIComponent(ownerEmail)}`,
+    null,
+    token,
   );
 
 export const getAdminUsers = (token?: string) =>

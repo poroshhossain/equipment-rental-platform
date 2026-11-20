@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import PageHeader from "@/components/dashboard/PageHeader";
 import EquipmentTable from "@/components/dashboard/owner/EquipmentTable";
-import { getAllEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
+import { getOwnerEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
 import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
@@ -15,10 +15,8 @@ export const instant = false;
 
 const MyEquipmentPage = async () => {
   const token = await serverToken();
-  const [equipment, profile] = await Promise.all([
-    getAllEquipment(token),
-    getOwnerProfile(token),
-  ]);
+  const profile = await getOwnerProfile(token);
+  const equipment = await getOwnerEquipment(profile?.email ?? "", token);
 
   return (
     <div className="space-y-5">

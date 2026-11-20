@@ -81,6 +81,23 @@ export interface AdminRental extends EquipmentRental {
   ownerEmail: string;
 }
 
+export interface AdminAnalytics {
+  totalUsers: number;
+  totalEquipment: number;
+  totalBookings: number;
+  pendingApprovals: number;
+  completedRentals: number;
+  totalRevenue: number;
+  monthlyBookings: { month: string; count: number }[];
+}
+
+export interface OwnerAnalytics {
+  totalEquipment: number;
+  completedRentals: number;
+  totalEarnings: number;
+  monthlyEarnings: { month: string; amount: number }[];
+}
+
 export interface Category {
   id: string;
   name: string;

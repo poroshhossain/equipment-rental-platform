@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EquipmentForm from "@/components/dashboard/owner/EquipmentForm";
-import { getAllEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
+import { getOwnerEquipment, getOwnerProfile } from "@/lib/api/ownerAction";
 import { serverToken } from "@/lib/server-token";
 
 export const metadata: Metadata = {
@@ -20,10 +20,8 @@ interface EditEquipmentPageProps {
 const EditEquipmentPage = async ({ params }: EditEquipmentPageProps) => {
   const { id } = await params;
   const token = await serverToken();
-  const [equipmentList, profile] = await Promise.all([
-    getAllEquipment(token),
-    getOwnerProfile(token),
-  ]);
+  const profile = await getOwnerProfile(token);
+  const equipmentList = await getOwnerEquipment(profile?.email ?? "", token);
   const equipment = equipmentList.find((item) => item.id === id);
 
   if (!equipment) {

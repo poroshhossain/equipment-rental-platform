@@ -3,6 +3,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarClock,
+  CheckCircle2,
   ClipboardList,
   Package,
   PackagePlus,
@@ -23,9 +24,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  getAllEquipment,
+  getOwnerAnalytics,
+  getOwnerEquipment,
   getOwnerProfile,
-  getRentals,
+  getOwnerRentals,
   getRevenue,
 } from "@/lib/api/ownerAction";
 import {
@@ -43,11 +45,13 @@ export const instant = false;
 
 const OwnerDashboardPage = async () => {
   const token = await serverToken();
-  const [equipment, rentals, monthlyRevenue, profile] = await Promise.all([
-    getAllEquipment(token),
-    getRentals(token),
+  const profile = await getOwnerProfile(token);
+  const ownerEmail = profile?.email ?? "";
+  const [equipment, rentals, monthlyRevenue, analytics] = await Promise.all([
+    getOwnerEquipment(ownerEmail, token),
+    getOwnerRentals(ownerEmail, token),
     getRevenue(token),
-    getOwnerProfile(token),
+    getOwnerAnalytics(ownerEmail, token),
   ]);
   const categoryCount = new Set(equipment.map((item) => item.category)).size;
   const activeRentals = rentals.filter(
@@ -124,6 +128,19 @@ const OwnerDashboardPage = async () => {
           hint="Awaiting admin approval"
           icon={ClipboardList}
           tone="danger"
+        />
+        <StatCard
+          label="Completed rentals"
+          value={analytics?.completedRentals ?? 0}
+          hint="Finished bookings"
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Total earnings"
+          value={formatCurrency(analytics?.totalEarnings ?? paidRevenue)}
+          hint="Lifetime paid rentals"
+          icon={Wallet}
+          tone="brand"
         />
       </div>
 
