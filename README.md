@@ -90,7 +90,9 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 
 ### Dashboard Shell & States
 
-- Private routes guarded by `AuthGuard`; admin pages add a `RoleGuard`.
+- Private routes guarded by `AuthGuard` in the dashboard layout. Each role group
+  (`(owner)`, `(admin)`, `(customer)`) has its own layout with a `RoleGuard`, so the
+  check is applied once per group instead of page by page.
 - Dashboard loading skeleton, global error page with retry and a 404 page.
 
 ---
@@ -127,8 +129,15 @@ equipment-rental-platform/
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/                    # Login & register
-│   │   ├── (dashboard)/dashboard/     # Owner/customer pages + shell
+│   │   ├── (dashboard)/dashboard/
+│   │   │   ├── (owner)/               # Owner pages + owner RoleGuard layout
+│   │   │   ├── (admin)/               # Admin pages + admin RoleGuard layout
+│   │   │   ├── (customer)/            # Customer pages + customer RoleGuard layout
+│   │   │   ├── my-profile/            # Shared profile (all roles)
+│   │   │   ├── layout.tsx             # AuthGuard + dashboard shell
+│   │   │   └── loading.tsx            # Dashboard loading skeleton
 │   │   ├── (public)/                  # Home, catalog, details, payment
+│   │   ├── error.tsx / not-found.tsx  # Error and 404 pages
 │   │   └── api/auth/[...all]/         # better-auth handler
 │   ├── components/
 │   │   ├── auth/AuthGuard.tsx        # Redirects logged-out visitors
