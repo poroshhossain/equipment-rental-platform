@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import AuthGuard from "@/components/public/AuthGuard";
+import AuthGuard from "@/components/auth/AuthGuard";
 import EquipmentDetails from "@/components/public/equipment/EquipmentDetails";
 import { getEquipmentById } from "@/lib/api/ownerAction";
 

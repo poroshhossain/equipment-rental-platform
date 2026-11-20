@@ -56,6 +56,16 @@ export interface Equipment {
   owner?: OwnerProfile;
 }
 
+/** Shared account profile for every role (customer, owner, admin). */
+export interface UserProfile {
+  userId: string;
+  name: string;
+  email: string;
+  image: string;
+  phone: string;
+  address: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -137,7 +147,7 @@ export interface Booking {
   contactNumber: string;
   deliveryAddress: string;
   notes: string;
-  status: string;
+  bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;
   createdAt: string;
 }

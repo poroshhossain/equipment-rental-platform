@@ -1,29 +1,23 @@
 import type { Metadata } from "next";
 
-import OwnerProfileView from "@/components/dashboard/owner/OwnerProfileView";
-import {
-  getAllEquipment,
-  getOwnerProfile,
-  getRentals,
-} from "@/lib/api/ownerAction";
+import PageHeader from "@/components/dashboard/PageHeader";
+import ProfileForm from "@/components/dashboard/ProfileForm";
 
 export const metadata: Metadata = {
   title: "My profile | EquipRent",
-  description: "Manage your owner profile and business information.",
+  description: "Manage your account details.",
 };
 
-// Live API data is loaded per request; allow the route to block on navigation.
-export const instant = false;
-
-const MyProfilePage = async () => {
-  const [equipment, profile, rentals] = await Promise.all([
-    getAllEquipment(),
-    getOwnerProfile(),
-    getRentals(),
-  ]);
-
+const MyProfilePage = () => {
   return (
-    <OwnerProfileView equipment={equipment} profile={profile} rentals={rentals} />
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="My account"
+        title="My profile"
+        description="Update the contact details other users see on EquipRent."
+      />
+      <ProfileForm />
+    </div>
   );
 };
 

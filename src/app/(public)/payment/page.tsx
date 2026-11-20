@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import AuthGuard from "@/components/public/AuthGuard";
+import AuthGuard from "@/components/auth/AuthGuard";
 import PaymentSummary from "@/components/public/equipment/PaymentSummary";
 import { getBooking } from "@/lib/api/ownerAction";
 

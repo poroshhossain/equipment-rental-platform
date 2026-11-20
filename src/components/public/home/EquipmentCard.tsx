@@ -38,6 +38,15 @@ export default function EquipmentCard({ equipment }: { equipment: Equipment }) {
         <span className="absolute top-3 left-3 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-semibold text-foreground">
           {equipment.category}
         </span>
+        <span
+          className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+            equipment.availableQuantity > 0
+              ? "bg-success/90 text-white"
+              : "bg-destructive/90 text-white"
+          }`}
+        >
+          {equipment.availableQuantity > 0 ? "Available" : "Out of stock"}
+        </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">

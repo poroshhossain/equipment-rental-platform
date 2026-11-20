@@ -5,11 +5,22 @@ import Link from "next/link";
 import { Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import StatusBadge from "@/components/dashboard/StatusBadge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getFavorites, removeFavorite } from "@/lib/api/ownerAction";
+import { authClient } from "@/lib/auth-client";
 import { formatCurrency } from "@/lib/format";
 import type { Equipment } from "@/lib/types";
+
+const headings = ["Equipment", "Category", "Rental price", "Availability", "Actions"];
 
 export default function FavoritesView() {
   const { data: session, isPending } = authClient.useSession();
@@ -43,13 +54,7 @@ export default function FavoritesView() {
     return <p className="text-sm text-muted-foreground">Loading favorites…</p>;
   }
 
-  if (!userId) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Please <Link href="/login" className="text-brand underline">log in</Link> to see your favorites.
-      </p>
-    );
-  }
+  if (!userId) return null;
 
   if (items.length === 0) {
     return (
@@ -59,10 +64,7 @@ export default function FavoritesView() {
         <p className="mt-1 text-sm text-muted-foreground">
           Save equipment you like to find it quickly here.
         </p>
-        <Link
-          href="/equipments"
-          className={`${buttonVariants({ variant: "brand" })} mt-5`}
-        >
+        <Link href="/equipments" className={`${buttonVariants({ variant: "brand" })} mt-5`}>
           Browse equipment
         </Link>
       </div>
@@ -70,51 +72,75 @@ export default function FavoritesView() {
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={item.image}
-            alt={item.name}
-            className="aspect-video w-full bg-secondary object-cover"
-          />
-          <div className="space-y-3 p-4">
-            <div>
-              <p className="truncate font-semibold">{item.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {item.category} · {item.brand}
-              </p>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-heading font-bold text-brand">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-secondary/40 hover:bg-secondary/40">
+            {headings.map((heading) => (
+              <TableHead key={heading} className="px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {heading}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={item.id} className="hover:bg-secondary/30">
+              <TableCell className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="size-10 shrink-0 rounded-lg bg-secondary object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="max-w-56 truncate text-sm font-medium">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.brand} · {item.model}
+                    </p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                {item.category}
+              </TableCell>
+              <TableCell className="px-4 py-3 text-sm font-semibold">
                 {formatCurrency(item.rentalPrice)}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  nativeButton={false}
-                  render={<Link href={`/equipments/${item.id}`} />}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Remove ${item.name}`}
-                  onClick={() => handleRemove(item)}
-                >
-                  <Trash2 className="text-destructive" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <StatusBadge
+                  label={item.availableQuantity > 0 ? "Available" : "Out of stock"}
+                  tone={item.availableQuantity > 0 ? "success" : "danger"}
+                />
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    nativeButton={false}
+                    render={<Link href={`/equipments/${item.id}`} />}
+                  >
+                    View Details
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => handleRemove(item)}
+                  >
+                    <Trash2 />
+                    Remove Favorite
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

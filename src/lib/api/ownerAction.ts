@@ -9,6 +9,7 @@ import type {
   OwnerProfile,
   OwnerProfileInput,
   Review,
+  UserProfile,
 } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -69,14 +70,26 @@ export const saveOwnerProfile = (profile: OwnerProfileInput) =>
     body: JSON.stringify(profile),
   });
 
-/** Public listing queries: status filter, MongoDB limit and sorting. */
+export interface EquipmentQuery {
+  status?: string;
+  limit?: number;
+  q?: string;
+  category?: string;
+  rentalType?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  availability?: string;
+  sort?: string;
+}
+
+/** All filters are applied by MongoDB through query parameters. */
 export async function getEquipmentList(
-  query: { status?: string; limit?: number; sort?: "popular" | "recent" } = {},
+  query: EquipmentQuery = {},
 ): Promise<Equipment[]> {
   const params = new URLSearchParams();
-  if (query.status) params.set("status", query.status);
-  if (query.limit) params.set("limit", String(query.limit));
-  if (query.sort) params.set("sort", query.sort);
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") params.set(key, String(value));
+  });
   const search = params.toString();
 
   return read<Equipment[]>(
@@ -123,3 +136,15 @@ export const getUserBookings = (userId: string) =>
     `/api/v1/customer/bookings?userId=${encodeURIComponent(userId)}`,
     [],
   );
+
+export const getUserProfile = (userId: string) =>
+  read<UserProfile | null>(
+    `/api/v1/profile?userId=${encodeURIComponent(userId)}`,
+    null,
+  );
+
+export const saveUserProfile = (profile: UserProfile) =>
+  request<UserProfile>("/api/v1/profile", {
+    method: "PATCH",
+    body: JSON.stringify(profile),
+  });

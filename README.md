@@ -47,7 +47,10 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
   cards, categories and reviews.
 - **Equipment cards** — clicking *View details* sends logged-out visitors to
   `/login?next=…`; logged-in visitors go to the details page.
-- **Catalog** (`/equipments`) — search, category filter and approved listings.
+- **Catalog** (`/equipments`) — 3-column grid of approved equipment with backend-driven
+  search (name/location), filters (category, rental type, price range, availability)
+  and sorting (price ascending/descending, recently added). Filter state lives in the
+  URL so results are shareable.
 - **Footer** — navigation, account links and contact anchor.
 
 ### Customer (private)
@@ -59,17 +62,26 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
   Availability is checked on the server and units are reserved.
 - **Payment page** — booking summary with the saved total and a clear notice that
   gateway integration is not connected yet.
-- **Favorites** — saved in MongoDB and listed in `/dashboard/favorites` with a
-  remove action.
+- **My Rentals** — table of the customer's bookings with dates, total and both
+  payment/booking statuses.
+- **Favorites** — table of saved equipment in `/dashboard/favorites` with
+  *View Details* and *Remove Favorite* actions.
+
+### Shared Account
+
+- **Profile** (`/dashboard/my-profile`) — available to customers, owners and admins.
+  Name, email, profile image, phone and address; updates are saved to MongoDB and
+  synced with the auth user.
 
 ### Owner Dashboard
 
 - Overview stats, 6-month revenue chart, rentals, pending-review queue.
-- Add / update / delete equipment, searchable equipment table, editable profile.
+- Add / update / delete equipment and a searchable equipment table.
 
 ### Dashboard Shell
 
-- Collapsible sidebar, role-aware navigation, sticky header and session sign-out.
+- Private routes guarded by `AuthGuard`; sidebar, role-aware navigation, sticky
+  header and session sign-out.
 
 ---
 
@@ -83,13 +95,14 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 | `/payment?booking=…`                | Booking/payment summary (login required) |
 | `/login`, `/register`               | Authentication screens                   |
 | `/dashboard/customer`               | Customer dashboard                       |
+| `/dashboard/my-rentals`             | Customer's rental bookings               |
 | `/dashboard/favorites`              | Saved favorites                          |
 | `/dashboard/owner`                  | Owner overview                           |
 | `/dashboard/add-equipment`          | Create a listing                         |
 | `/dashboard/my-equipment`           | Owner equipment table                    |
 | `/dashboard/my-equipment/[id]/edit` | Update a listing                         |
 | `/dashboard/my-equipment-rentals`   | Owner rentals                            |
-| `/dashboard/my-profile`             | Owner profile                            |
+| `/dashboard/my-profile`             | Shared profile (all roles)               |
 | `/dashboard/admin`                  | Admin dashboard (placeholder)            |
 
 ---
@@ -105,13 +118,13 @@ equipment-rental-platform/
 │   │   ├── (public)/                  # Home, catalog, details, payment
 │   │   └── api/auth/[...all]/         # better-auth handler
 │   ├── components/
+│   │   ├── auth/AuthGuard.tsx        # Redirects logged-out visitors
 │   │   ├── public/
 │   │   │   ├── header/               # Navbar, logo
 │   │   │   ├── footer/               # Site footer
-│   │   │   ├── home/                 # Banner, cards, categories, sections
-│   │   │   ├── equipment/            # Details, booking modal, payment summary
-│   │   │   └── AuthGuard.tsx         # Redirects logged-out visitors
-│   │   ├── dashboard/                # Dashboard shell + owner/customer views
+│   │   │   ├── home/                 # Banner, cards, catalog filters, sections
+│   │   │   └── equipment/            # Details, booking modal, payment summary
+│   │   ├── dashboard/                # Shell, owner views, rentals/favorites/profile
 │   │   └── ui/                       # shadcn/base-ui primitives
 │   └── lib/
 │       ├── api/ownerAction.ts        # All backend calls
@@ -142,7 +155,7 @@ back to empty values if the API is offline; writes show a connection error.
 
 | Method   | Endpoint                              | Used by                        |
 | -------- | ------------------------------------- | ------------------------------ |
-| `GET`    | `/api/v1/equipments?status=&limit=&sort=` | Home, catalog, dashboard   |
+| `GET`    | `/api/v1/equipments?status=&q=&category=&rentalType=&minPrice=&maxPrice=&availability=&sort=&limit=` | Home, catalog, dashboard |
 | `GET`    | `/api/v1/equipments/:id`              | Details page                   |
 | `POST`   | `/api/v1/equipments`                  | Add equipment                  |
 | `PATCH`  | `/api/v1/equipments/:id`              | Update listing                 |
@@ -156,9 +169,10 @@ back to empty values if the API is offline; writes show a connection error.
 | `DELETE` | `/api/v1/customer/favorites/:equipmentId` | Remove favorite         |
 | `GET`/`POST` | `/api/v1/customer/bookings`     | Create/list bookings           |
 | `GET`    | `/api/v1/customer/bookings/:id`       | Payment summary                |
+| `GET`/`PATCH` | `/api/v1/profile?userId=`        | Shared account profile         |
 
-MongoDB collections: `equipments`, `rentals`, `ownerProfiles`, `categories`,
-`reviews`, `favorites`, `bookings`.
+MongoDB collections: `equipments`, `rentals`, `ownerProfiles`, `userProfiles`,
+`categories`, `reviews`, `favorites`, `bookings`.
 
 Bookings validate dates and available quantity, calculate `days × units × quantity`
 (units = days for daily, weeks for weekly, months for monthly), reserve the units,
