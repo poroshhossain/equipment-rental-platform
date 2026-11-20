@@ -17,6 +17,7 @@ import type {
   UserRole,
 } from "@/lib/types";
 
+// All app data comes from the Express API. MongoDB is only touched by the server.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

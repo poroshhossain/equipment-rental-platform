@@ -189,8 +189,10 @@ equipment-rental-platform-server/
 
 ## Backend API
 
-The client unwraps the standard `{ success, message, data }` envelope. Reads fall
-back to empty values if the API is offline; writes show a connection error.
+The client calls the Express API directly at `NEXT_PUBLIC_API_URL` (default
+`http://localhost:5000`). Only the backend reads and writes MongoDB application
+data; the frontend's MongoDB connection is used solely by the better-auth adapter.
+Reads fall back to empty states if the API is unavailable; writes show an error.
 
 | Method   | Endpoint                              | Used by                        |
 | -------- | ------------------------------------- | ------------------------------ |
