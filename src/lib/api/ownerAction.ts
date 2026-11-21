@@ -20,11 +20,11 @@ import type {
 // All app data comes from the Express API. MongoDB is only touched by the server.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response;
 
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(url, {
       ...init,
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
@@ -32,11 +32,28 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error("Cannot reach the API. Is the backend running?");
   }
 
-  const body = await response.json();
+  // A 404/500 page is HTML — parsing it as JSON produced the confusing
+  // "Unexpected token '<'" error. Fail with an actionable message instead.
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "The API returned an unexpected response. Check NEXT_PUBLIC_API_URL and that the backend is running.",
+    );
+  }
+
+  let body: { data?: T; message?: string };
+  try {
+    body = await response.json();
+  } catch {
+    throw new Error("Could not read the API response.");
+  }
   if (!response.ok) throw new Error(body.message ?? "API request failed.");
 
   return body.data as T;
 }
+
+const request = <T>(path: string, init?: RequestInit) =>
+  apiRequest<T>(`${API_URL}${path}`, init);
 
 /** Reads show empty states instead of crashing when the API is unavailable. */
 async function read<T>(path: string, fallback: T): Promise<T> {
@@ -135,24 +152,51 @@ export const createBooking = (booking: BookingInput) =>
 export const getBooking = (id: string) =>
   read<Booking | null>(`/api/v1/customer/bookings/${id}`, null);
 
-export const createCheckout = (bookingId: string) =>
-  request<{ url: string | null }>("/api/v1/payments/checkout", {
+export interface CheckoutSession {
+  url: string | null;
+  sessionId?: string;
+  paid?: boolean;
+}
+
+/** Creates a Stripe Checkout session on the Express backend. */
+export const createCheckout = (bookingId: string, userId?: string) =>
+  request<CheckoutSession>("/api/v1/payment/checkout", {
     method: "POST",
-    body: JSON.stringify({ bookingId }),
+    body: JSON.stringify({ bookingId, userId }),
   });
 
 export interface PaymentRecord {
   id: string;
   bookingId: string;
   amount: number;
+  currency?: string;
   status: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
+  customerEmail?: string;
+  createdAt?: string;
 }
 
-export const getPayment = (bookingId: string) =>
-  read<PaymentRecord | null>(
-    `/api/v1/payments?bookingId=${encodeURIComponent(bookingId)}`,
-    null,
-  );
+export const getPayment = async (bookingId: string) => {
+  try {
+    return await request<PaymentRecord | null>(
+      `/api/v1/payment?bookingId=${encodeURIComponent(bookingId)}`,
+    );
+  } catch {
+    return null;
+  }
+};
+
+/** Confirms a returned Stripe session through the backend's settlement path. */
+export const verifyPayment = (sessionId: string, bookingId?: string) =>
+  request<{
+    paid: boolean;
+    status?: string;
+    payment?: PaymentRecord | null;
+  }>("/api/v1/payment/verify", {
+    method: "POST",
+    body: JSON.stringify({ sessionId, bookingId }),
+  });
 
 export const getUserBookings = (userId: string) =>
   read<Booking[]>(

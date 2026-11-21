@@ -38,6 +38,11 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
 All secrets (MongoDB, better-auth, Stripe, ImgBB, Google OAuth) come from `.env`;
 copy `.env.example` and never commit real values.
 
+**Stripe setup:** set `STRIPE_SECRET_KEY` to enable Checkout. Optionally set
+`STRIPE_WEBHOOK_SECRET` and register `POST /api/webhooks/stripe` in the Stripe
+dashboard for automatic settlement; the success page verifies sessions
+directly, so payments still settle without the webhook.
+
 ---
 
 ## Projects
@@ -75,9 +80,11 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 - **Booking modal** — start/end date, quantity, contact number, delivery address
   and notes. The total is calculated from rental duration × rental type × quantity.
   Availability is checked on the server and units are reserved.
-- **Payment page** — booking summary with a Stripe Checkout button and a
-  `/payment/success` page. The webhook marks bookings paid and stores the
-  transaction in the `payments` collection.
+- **Payment flow** — confirming a booking opens Stripe Checkout directly. The
+  `/payment/success` page verifies the returned session, marks the booking and
+  rental paid/confirmed, and records the transaction in the `payments`
+  collection. A Stripe webhook at `POST /api/webhooks/stripe` applies the same
+  settlement when configured. The `/payment` page remains as a retry fallback.
 - **My Rentals** — table of the customer's bookings with dates, total and both
   payment/booking statuses.
 - **Favorites** — table of saved equipment in `/dashboard/favorites` with
@@ -294,7 +301,7 @@ npm run dev      # http://localhost:3000
 - [x] Owner and admin dashboards fully backed by the API.
 - [x] Customer My Rentals, favorites table and shared profile page.
 - [x] Loading skeleton, error page and 404 page.
-- [ ] Connect a real payment gateway on `/payment`.
+- [x] Stripe Checkout with payment verification and transaction recording.
 - [ ] Add server-side auth/role guards for private routes.
 - [ ] Add image uploads and email notifications.
 - [ ] Add automated tests.

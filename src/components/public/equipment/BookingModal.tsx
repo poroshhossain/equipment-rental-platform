@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +18,69 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createBooking } from "@/lib/api/ownerAction";
+import { createBooking, createCheckout } from "@/lib/api/ownerAction";
 import { formatCurrency, getDurationInDays } from "@/lib/format";
 import { rentalTypeLabels, type Equipment } from "@/lib/types";
 
 const DAYS_PER_UNIT = { daily: 1, weekly: 7, monthly: 30 } as const;
+
+interface BookingForm {
+  startDate: string;
+  endDate: string;
+  quantity: string;
+  contactNumber: string;
+  deliveryAddress: string;
+  notes: string;
+}
+
+type FormErrors = Partial<Record<keyof BookingForm, string>>;
+
+const INITIAL_FORM: BookingForm = {
+  startDate: "",
+  endDate: "",
+  quantity: "1",
+  contactNumber: "",
+  deliveryAddress: "",
+  notes: "",
+};
+
+/** Local calendar date in `YYYY-MM-DD` format, safe for `<input type="date">`. */
+function todayInputValue(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function validateBooking(
+  form: BookingForm,
+  availableQuantity: number,
+  today: string,
+): FormErrors {
+  const errors: FormErrors = {};
+
+  if (form.startDate && form.startDate < today) {
+    errors.startDate = "Start date cannot be in the past.";
+  }
+  if (form.endDate) {
+    if (form.endDate < today) {
+      errors.endDate = "End date cannot be in the past.";
+    } else if (form.startDate && form.endDate < form.startDate) {
+      errors.endDate = "End date must be on or after the start date.";
+    }
+  }
+
+  const requested = Number(form.quantity);
+  if (!form.quantity.trim() || !Number.isInteger(requested)) {
+    errors.quantity = "Enter a valid quantity.";
+  } else if (requested < 1) {
+    errors.quantity = "Quantity must be at least 1.";
+  } else if (requested > availableQuantity) {
+    errors.quantity = `Only ${availableQuantity} unit(s) available.`;
+  }
+
+  return errors;
+}
 
 interface BookingModalProps {
   open: boolean;
@@ -40,28 +99,53 @@ export default function BookingModal({
 }: BookingModalProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    startDate: "",
-    endDate: "",
-    quantity: "1",
-    contactNumber: "",
-    deliveryAddress: "",
-    notes: "",
-  });
+  const [showErrors, setShowErrors] = useState(false);
+  const [form, setForm] = useState<BookingForm>(INITIAL_FORM);
 
-  const update = (field: keyof typeof form, value: string) =>
-    setForm((current) => ({ ...current, [field]: value }));
+  const today = todayInputValue();
+  const errors = validateBooking(form, equipment.availableQuantity, today);
+  const firstError = errors.startDate ?? errors.endDate ?? errors.quantity;
+  const hasValidDates = Boolean(form.startDate && form.endDate) && !errors.startDate && !errors.endDate;
 
-  const days =
-    form.startDate && form.endDate
-      ? getDurationInDays(form.startDate, form.endDate)
-      : 0;
+  const days = hasValidDates ? getDurationInDays(form.startDate, form.endDate) : 0;
   const units = Math.max(1, Math.ceil(days / DAYS_PER_UNIT[equipment.rentalType]));
-  const quantity = Math.max(1, Number(form.quantity) || 1);
+  const requestedQuantity = Number(form.quantity);
+  const quantity = Math.min(
+    Math.max(1, Number.isInteger(requestedQuantity) ? requestedQuantity : 1),
+    Math.max(1, equipment.availableQuantity),
+  );
   const total = units * equipment.rentalPrice * quantity;
+
+  const update = (field: keyof BookingForm, value: string) => {
+    setShowErrors(true);
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  // Keep the end date in sync when a later start date is selected.
+  const updateStartDate = (value: string) => {
+    setShowErrors(true);
+    setForm((current) => ({
+      ...current,
+      startDate: value,
+      endDate: current.endDate && value && current.endDate < value ? "" : current.endDate,
+    }));
+  };
+
+  const errorProps = (field: keyof BookingForm) => {
+    const message = showErrors ? errors[field] : undefined;
+    return {
+      "aria-invalid": Boolean(message),
+      "aria-describedby": message ? `${field}-error` : undefined,
+    };
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setShowErrors(true);
+    if (firstError) {
+      toast.error(firstError);
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -77,10 +161,28 @@ export default function BookingModal({
         customer,
       });
 
-      toast.success("Booking confirmed", {
-        description: "Review the total on the payment page.",
-      });
       onOpenChange(false);
+
+      // Take the renter straight to Stripe Checkout; the payment page is the
+      // fallback if Stripe is unavailable or session creation fails.
+      try {
+        const checkout = await createCheckout(booking.id, userId);
+        if (checkout.url) {
+          window.location.assign(checkout.url);
+          return;
+        }
+        toast.info("Stripe is not configured yet", {
+          description: "Add STRIPE_SECRET_KEY to enable secure checkout.",
+        });
+      } catch (error) {
+        toast.info("Booking saved", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "You can complete the payment on the next page.",
+        });
+      }
+
       router.push(`/payment?booking=${booking.id}`);
     } catch (error) {
       toast.error(
@@ -110,20 +212,30 @@ export default function BookingModal({
               <Input
                 id="start-date"
                 type="date"
+                min={today}
                 required
                 value={form.startDate}
-                onChange={(event) => update("startDate", event.target.value)}
+                onChange={(event) => updateStartDate(event.target.value)}
+                {...errorProps("startDate")}
               />
+              {showErrors ? (
+                <FieldError id="startDate-error" message={errors.startDate} />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="end-date">Rental end date</Label>
               <Input
                 id="end-date"
                 type="date"
+                min={form.startDate || today}
                 required
                 value={form.endDate}
                 onChange={(event) => update("endDate", event.target.value)}
+                {...errorProps("endDate")}
               />
+              {showErrors ? (
+                <FieldError id="endDate-error" message={errors.endDate} />
+              ) : null}
             </div>
           </div>
 
@@ -134,10 +246,15 @@ export default function BookingModal({
               type="number"
               min={1}
               max={equipment.availableQuantity}
+              step={1}
               required
               value={form.quantity}
               onChange={(event) => update("quantity", event.target.value)}
+              {...errorProps("quantity")}
             />
+            {showErrors ? (
+              <FieldError id="quantity-error" message={errors.quantity} />
+            ) : null}
           </div>
 
           <div className="space-y-2">

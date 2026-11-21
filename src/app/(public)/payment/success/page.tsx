@@ -7,8 +7,10 @@ import { buttonVariants } from "@/components/ui/button";
 import {
   getBooking,
   getPayment,
+  verifyPayment,
+  type PaymentRecord,
 } from "@/lib/api/ownerAction";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Payment status | EquipRent",
@@ -20,13 +22,29 @@ export const instant = false;
 const PaymentSuccessPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ booking?: string }>;
+  searchParams: Promise<{ booking?: string; session_id?: string }>;
 }) => {
-  const { booking: id } = await searchParams;
-  const [booking, payment] = id
-    ? await Promise.all([getBooking(id), getPayment(id)])
-    : [null, null];
-  const paid = payment?.status === "paid" || booking?.paymentStatus === "paid";
+  const { booking: id, session_id: sessionId } = await searchParams;
+
+  let bookingId = id;
+  let verified = false;
+  let payment: PaymentRecord | null = null;
+
+  if (sessionId) {
+    try {
+      const result = await verifyPayment(sessionId, id);
+      verified = result.paid;
+      payment = result.payment ?? null;
+      if (result.payment?.bookingId) bookingId = result.payment.bookingId;
+    } catch {
+      // The webhook may still be in flight — keep the waiting state.
+    }
+  }
+
+  const booking = bookingId ? await getBooking(bookingId) : null;
+  if (!payment && bookingId) payment = await getPayment(bookingId);
+  const paid =
+    verified || payment?.status === "paid" || booking?.paymentStatus === "paid";
 
   return (
     <AuthGuard>
@@ -44,7 +62,7 @@ const PaymentSuccessPage = async ({
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {paid
-            ? "Your rental is confirmed. The owner has been notified."
+            ? "Your rental is confirmed and your payment has been recorded."
             : "Stripe will confirm the payment shortly. This page updates on reload."}
         </p>
 
@@ -64,6 +82,26 @@ const PaymentSuccessPage = async ({
                 {formatCurrency(booking.totalAmount)}
               </span>
             </div>
+          </div>
+        ) : null}
+
+        {payment ? (
+          <div className="mt-4 space-y-2 rounded-xl border border-border bg-card p-5 text-left text-sm">
+            <p className="font-medium">Transaction details</p>
+            {[
+              ["Status", payment.status],
+              ["Amount", formatCurrency(payment.amount)],
+              ["Stripe session", payment.stripeSessionId],
+              ["Payment intent", payment.stripePaymentIntentId],
+              ["Date", payment.createdAt ? formatDate(payment.createdAt) : ""],
+            ]
+              .filter(([, value]) => Boolean(value))
+              .map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="truncate font-medium">{value}</span>
+                </div>
+              ))}
           </div>
         ) : null}
 

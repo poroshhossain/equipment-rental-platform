@@ -13,14 +13,14 @@ export default function PayWithStripe({ bookingId }: { bookingId: string }) {
   const handleCheckout = async () => {
     setBusy(true);
     try {
-      const result = await createCheckout(bookingId);
-      if (result.url) {
-        window.location.href = result.url;
-      } else {
-        toast.info("Stripe is not configured yet", {
-          description: "Add STRIPE_SECRET_KEY to the backend to enable checkout.",
-        });
+      const checkout = await createCheckout(bookingId);
+      if (checkout.url) {
+        window.location.assign(checkout.url);
+        return;
       }
+      toast.info("Stripe is not configured yet", {
+        description: "Add STRIPE_SECRET_KEY to enable secure checkout.",
+      });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not start checkout.",
