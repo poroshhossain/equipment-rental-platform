@@ -149,12 +149,13 @@ export default function MyRentalsView() {
                         href={`/equipments/${booking.equipmentId}`}
                       >
                         <Eye />
-                        View details
+                        View equipment
                       </DropdownMenuLinkItem>
                       <RecordDetails
                         record={booking}
                         title={booking.equipmentName}
                         asMenu
+                        label="Booking details"
                       />
                     </DropdownMenuContent>
                   </DropdownMenu>
