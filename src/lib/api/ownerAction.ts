@@ -28,8 +28,14 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
       ...init,
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
-  } catch {
-    throw new Error("Cannot reach the API. Is the backend running?");
+  } catch (error) {
+    // Network/CORS failures look identical here. Include the URL so the
+    // browser console shows exactly which endpoint is misconfigured.
+    throw new Error(
+      `Cannot reach the API at ${url} — ${
+        error instanceof Error ? error.message : "network or CORS error"
+      }`,
+    );
   }
 
   // A 404/500 page is HTML — parsing it as JSON produced the confusing
@@ -52,14 +58,25 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   return body.data as T;
 }
 
-const request = <T>(path: string, init?: RequestInit) =>
-  apiRequest<T>(`${API_URL}${path}`, init);
+const request = <T>(path: string, init?: RequestInit) => {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not set. Add the deployed backend URL in Vercel, then rebuild the frontend (NEXT_PUBLIC_* values are baked in at build time).",
+    );
+  }
+  return apiRequest<T>(`${API_URL}${path}`, init);
+};
 
 /** Reads show empty states instead of crashing when the API is unavailable. */
 async function read<T>(path: string, fallback: T): Promise<T> {
   try {
     return (await request<T>(path)) ?? fallback;
-  } catch {
+  } catch (error) {
+    // Never hide the real cause behind a silent "empty table" on production.
+    console.error(
+      `[API] ${path} failed:`,
+      error instanceof Error ? error.message : error,
+    );
     return fallback;
   }
 }
