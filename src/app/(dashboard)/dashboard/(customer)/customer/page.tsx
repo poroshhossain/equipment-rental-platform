@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Customer dashboard | EquipRent",
   description: "Find, save and rent equipment.",

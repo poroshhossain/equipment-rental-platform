@@ -18,8 +18,8 @@ export default function PayWithStripe({ bookingId }: { bookingId: string }) {
         window.location.assign(checkout.url);
         return;
       }
-      toast.info("Stripe is not configured yet", {
-        description: "Add STRIPE_SECRET_KEY to enable secure checkout.",
+      toast.info("Checkout is unavailable right now", {
+        description: "Please try again later — your booking is saved as pending.",
       });
     } catch (error) {
       toast.error(

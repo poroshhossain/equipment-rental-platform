@@ -4,6 +4,10 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { RecordDetailsProvider } from "@/components/dashboard/RecordDetailsProvider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
+// AuthGuard hides {children} until the session resolves, so this guarded
+// segment is opted out of instant-navigation validation.
+export const instant = false;
+
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthGuard>

@@ -18,7 +18,7 @@ import type {
 } from "@/lib/types";
 
 // All app data comes from the Express API. MongoDB is only touched by the server.
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response;

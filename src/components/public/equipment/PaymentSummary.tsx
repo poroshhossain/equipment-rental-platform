@@ -75,8 +75,7 @@ export default function PaymentSummary({ booking }: { booking: Booking | null })
               <Info className="size-4 shrink-0 text-brand" />
               <p className="text-muted-foreground">
                 Your booking is saved as pending until Stripe confirms the
-                payment. Configure <code>STRIPE_SECRET_KEY</code> to enable live
-                checkout.
+                payment. Secure checkout is handled by our payment backend.
               </p>
             </div>
           </div>

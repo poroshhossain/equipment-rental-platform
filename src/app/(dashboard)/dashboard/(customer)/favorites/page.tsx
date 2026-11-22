@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import FavoritesView from "@/components/dashboard/customer/FavoritesView";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Favorites | EquipRent",
   description: "Equipment you saved for later.",

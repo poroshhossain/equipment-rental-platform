@@ -171,8 +171,8 @@ export default function BookingModal({
           window.location.assign(checkout.url);
           return;
         }
-        toast.info("Stripe is not configured yet", {
-          description: "Add STRIPE_SECRET_KEY to enable secure checkout.",
+        toast.info("Checkout is unavailable right now", {
+          description: "Your booking is saved. You can try again from the payment page.",
         });
       } catch (error) {
         toast.info("Booking saved", {
