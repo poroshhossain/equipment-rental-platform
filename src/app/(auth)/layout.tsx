@@ -1,11 +1,6 @@
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Boxes,
-  CalendarCheck,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { CalendarCheck, ShieldCheck, Sparkles } from "lucide-react";
+
+import Navbar from "@/components/public/header/Navbar";
 
 const highlights = [
   {
@@ -31,35 +26,31 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-40 -top-40 size-112 rounded-full bg-brand/25 blur-3xl" />
-        <div className="absolute -bottom-40 right-0 size-120 rounded-full bg-success/15 blur-3xl" />
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-background">
+      {/* Subtle background texture — kept behind the content in both themes. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -left-40 -top-40 size-112 rounded-full bg-brand/15 blur-3xl" />
+        <div className="absolute -bottom-40 right-0 size-120 rounded-full bg-success/10 blur-3xl" />
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
+              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }}
         />
       </div>
 
-      <div className="mx-auto grid min-h-screen w-full max-w-7xl lg:grid-cols-[1.05fr_1fr]">
-        {/* Brand panel */}
-        <aside className="relative hidden overflow-hidden rounded-r-[2.5rem] bg-primary p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-          <div className="relative flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-2xl bg-brand text-brand-foreground">
-              <Boxes className="size-6" />
-            </span>
-            <span className="font-heading text-lg font-extrabold tracking-tight">
-              Equip<span className="text-success">Rent</span>
-            </span>
-          </div>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+        <Navbar />
+      </header>
 
-          <div className="relative space-y-10">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl flex-1 lg:grid-cols-[1.05fr_1fr]">
+        {/* Brand panel */}
+        <aside className="relative hidden flex-col overflow-hidden rounded-r-[2.5rem] bg-primary p-10 text-primary-foreground lg:flex xl:p-12">
+          <div className="flex flex-1 flex-col justify-center space-y-10 py-10">
             <div className="space-y-5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground/80">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground/80">
                 <Sparkles className="size-3.5 text-success" />
                 Trusted by 12,000+ renters
               </span>
@@ -95,7 +86,7 @@ export default function AuthLayout({
             </ul>
           </div>
 
-          <div className="relative flex items-center gap-4 rounded-2xl border border-primary-foreground/10 bg-primary-foreground/6 p-4">
+          <div className="flex items-center gap-4 rounded-2xl border border-primary-foreground/10 bg-primary-foreground/6 p-4">
             <div className="flex -space-x-2.5">
               <span className="size-8 rounded-full border-2 border-primary bg-brand" />
               <span className="size-8 rounded-full border-2 border-primary bg-success" />
@@ -109,27 +100,8 @@ export default function AuthLayout({
         </aside>
 
         {/* Form panel */}
-        <main className="flex min-h-screen flex-col px-4 py-6 sm:px-8 lg:py-10">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-brand"
-            >
-              <ArrowLeft className="size-4" />
-              Back to home
-            </Link>
-
-            <Link href="/" className="flex items-center gap-2 lg:hidden">
-              <span className="grid size-8 place-items-center rounded-lg bg-brand text-brand-foreground">
-                <Boxes className="size-4" />
-              </span>
-              <span className="font-heading text-sm font-extrabold">
-                Equip<span className="text-brand">Rent</span>
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex flex-1 items-center justify-center py-8">
+        <main className="flex flex-col px-4 py-10 sm:px-8 lg:px-12 lg:py-14">
+          <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-md">{children}</div>
           </div>
         </main>

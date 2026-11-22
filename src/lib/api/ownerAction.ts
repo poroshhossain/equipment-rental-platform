@@ -16,6 +16,44 @@ import type {
   UserProfile,
   UserRole,
 } from "@/lib/types";
+import { authClient } from "@/lib/auth-client";
+
+// Browser tokens are cached briefly; never cache them on the server, where a
+// module-level value would leak one user's token into another user's request.
+let browserToken: { token: string; expiresAt: number } | null = null;
+
+async function getAuthorizationHeader(): Promise<Record<string, string>> {
+  try {
+    let token: string | undefined;
+
+    if (typeof window === "undefined") {
+      // Server Component: better-auth's Node client has no cookie jar, so
+      // forward the incoming session cookie to /api/auth/token explicitly.
+      const { headers } = await import("next/headers");
+      const cookie = (await headers()).get("cookie");
+      const result = await authClient.token(undefined, {
+        headers: cookie ? { cookie } : {},
+      });
+      token = result.data?.token;
+    } else {
+      if (browserToken && browserToken.expiresAt > Date.now()) {
+        token = browserToken.token;
+      } else {
+        const result = await authClient.token();
+        token = result.data?.token;
+        if (token) {
+          // Tokens live 15 minutes; refresh a little earlier.
+          browserToken = { token, expiresAt: Date.now() + 10 * 60 * 1000 };
+        }
+      }
+    }
+
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    // Public pages still work when there is no session.
+    return {};
+  }
+}
 
 // All app data comes from the Express API. MongoDB is only touched by the server.
 // Normalize a trailing slash: `${API_URL}/api/v1/...` would otherwise become
@@ -26,12 +64,14 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response;
 
   try {
+    const authHeader = await getAuthorizationHeader();
     response = await fetch(url, {
       ...init,
       // A Content-Type on a bodyless GET forces a CORS preflight; only send it
       // when there is actually a JSON body.
       headers: {
         ...(init?.body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...authHeader,
         ...init?.headers,
       },
     });
