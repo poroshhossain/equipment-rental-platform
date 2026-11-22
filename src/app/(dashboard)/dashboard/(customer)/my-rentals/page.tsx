@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import MyRentalsView from "@/components/dashboard/customer/MyRentalsView";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "My rentals | EquipRent",
   description: "All equipment bookings you have made.",

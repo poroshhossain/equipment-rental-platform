@@ -6,10 +6,9 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
 
 > **Live URL:** add the deployed client URL here after deployment.
 >
-> **Current stage:** public site, customer flows, owner/admin dashboards, Stripe
-> checkout, analytics and cron jobs are implemented. Stripe,
-> ImgBB and email keys are read from environment variables — add real keys in
-> production to enable those integrations.
+> **Current stage:** public site, customer flows, owner/admin dashboards and
+> analytics are implemented. Stripe Checkout is fully owned by the separate
+> Express backend — the frontend never reads a Stripe secret key.
 
 ---
 
@@ -33,15 +32,16 @@ from a role-aware dashboard. All records live in MongoDB behind a small Express 
   `mongodb`, `framer-motion`, `react-hook-form`, `@hookform/resolvers`, `zod`,
   `sonner`, `lucide-react`, `@base-ui/react`, `class-variance-authority`, `clsx`,
   `tailwind-merge`, `tailwindcss`
-- **Server:** `express`, `cors`, `dotenv`, `mongodb`, `stripe`, `node-cron`
+- **Backend (separate project):** `express`, `cors`, `dotenv`, `mongodb`, `stripe`
 
-All secrets (MongoDB, better-auth, Stripe, ImgBB, Google OAuth) come from `.env`;
-copy `.env.example` and never commit real values.
+Secrets (MongoDB, better-auth, Google OAuth) come from `.env`; copy
+`.env.example` and never commit real values. **Stripe keys belong only in
+`equipment-rental-platform-server/.env`.**
 
-**Stripe setup:** set `STRIPE_SECRET_KEY` to enable Checkout. Optionally set
-`STRIPE_WEBHOOK_SECRET` and register `POST /api/webhooks/stripe` in the Stripe
-dashboard for automatic settlement; the success page verifies sessions
-directly, so payments still settle without the webhook.
+**Stripe setup:** configure `STRIPE_SECRET_KEY` in the backend project and,
+optionally, `STRIPE_WEBHOOK_SECRET` with `POST /api/v1/payment/webhook`
+registered in the Stripe dashboard. The frontend only redirects to the Checkout
+URL returned by the backend and reads payment status from it.
 
 ---
 
@@ -80,11 +80,11 @@ Both projects use the same MongoDB database (`equipment-rental-platform`).
 - **Booking modal** — start/end date, quantity, contact number, delivery address
   and notes. The total is calculated from rental duration × rental type × quantity.
   Availability is checked on the server and units are reserved.
-- **Payment flow** — confirming a booking opens Stripe Checkout directly. The
-  `/payment/success` page verifies the returned session, marks the booking and
-  rental paid/confirmed, and records the transaction in the `payments`
-  collection. A Stripe webhook at `POST /api/webhooks/stripe` applies the same
-  settlement when configured. The `/payment` page remains as a retry fallback.
+- **Payment flow** — confirming a booking asks the backend to create a Stripe
+  Checkout session and redirects to it. On return, `/payment/success` asks the
+  backend to verify the session; the backend settles the booking, rental mirror
+  and `payments` record (also via `POST /api/v1/payment/webhook`). The `/payment`
+  page remains as a retry fallback.
 - **My Rentals** — table of the customer's bookings with dates, total and both
   payment/booking statuses.
 - **Favorites** — table of saved equipment in `/dashboard/favorites` with
@@ -197,9 +197,10 @@ equipment-rental-platform-server/
 
 ## Backend API
 
-The client calls the Express API directly at `NEXT_PUBLIC_API_URL` (default
-`http://localhost:5000`). Only the backend reads and writes MongoDB application
-data; the frontend's MongoDB connection is used solely by the better-auth adapter.
+The client calls the Express API directly at `NEXT_PUBLIC_API_URL`
+(`http://localhost:5000` locally; set the deployed backend URL on Vercel). Only
+the backend reads and writes MongoDB application data and talks to Stripe; the
+frontend's MongoDB connection is used solely by the better-auth adapter.
 Reads fall back to empty states if the API is unavailable; writes show an error.
 
 | Method   | Endpoint                              | Used by                        |
@@ -226,9 +227,13 @@ Reads fall back to empty states if the API is unavailable; writes show an error.
 | `PATCH`  | `/api/v1/admin/equipments/:id/status`  | Approve / reject          |
 | `GET`    | `/api/v1/admin/rentals`                | Admin rentals table       |
 | `PATCH`  | `/api/v1/admin/rentals/:id/status`     | Manage booking statuses   |
+| `POST`   | `/api/v1/payment/checkout`             | Create Stripe Checkout     |
+| `POST`   | `/api/v1/payment/verify`               | Verify a returned session  |
+| `GET`    | `/api/v1/payment?bookingId=`           | Payment record by booking  |
+| `POST`   | `/api/v1/payment/webhook`              | Stripe webhook (server only) |
 
 MongoDB collections: `equipments`, `rentals`, `ownerProfiles`, `userProfiles`,
-`categories`, `reviews`, `favorites`, `bookings`.
+`categories`, `reviews`, `favorites`, `bookings`, `payments`.
 
 Bookings validate dates and available quantity, calculate `days × units × quantity`
 (units = days for daily, weeks for weekly, months for monthly), reserve the units,
@@ -269,7 +274,7 @@ BETTER_AUTH_URL="http://localhost:3000"
 BETTER_AUTH_SECRET="your-secret"
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
-# Optional — defaults to http://localhost:5000
+# Required — http://localhost:5000 locally, deployed backend URL on Vercel
 NEXT_PUBLIC_API_URL="http://localhost:5000"
 ```
 

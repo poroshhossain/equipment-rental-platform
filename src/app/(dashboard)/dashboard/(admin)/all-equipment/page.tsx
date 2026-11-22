@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import AdminEquipmentTable from "@/components/dashboard/admin/AdminEquipmentTable";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "All equipment | EquipRent",
   description: "Approve, reject and manage every listing.",

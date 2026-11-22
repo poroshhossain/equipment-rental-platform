@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import UsersTable from "@/components/dashboard/admin/UsersTable";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "All users | EquipRent",
   description: "Manage registered accounts and their roles.",

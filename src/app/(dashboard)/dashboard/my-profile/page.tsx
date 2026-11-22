@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/dashboard/PageHeader";
 import ProfileForm from "@/components/dashboard/ProfileForm";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "My profile | EquipRent",
   description: "Manage your account details.",
