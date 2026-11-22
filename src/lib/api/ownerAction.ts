@@ -18,7 +18,9 @@ import type {
 } from "@/lib/types";
 
 // All app data comes from the Express API. MongoDB is only touched by the server.
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Normalize a trailing slash: `${API_URL}/api/v1/...` would otherwise become
+// `//api/v1/...`, which Vercel answers with a 308 that breaks CORS preflight.
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response;
@@ -26,7 +28,12 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(url, {
       ...init,
-      headers: { "Content-Type": "application/json", ...init?.headers },
+      // A Content-Type on a bodyless GET forces a CORS preflight; only send it
+      // when there is actually a JSON body.
+      headers: {
+        ...(init?.body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...init?.headers,
+      },
     });
   } catch (error) {
     // Network/CORS failures look identical here. Include the URL so the
