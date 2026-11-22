@@ -88,26 +88,30 @@ const Navbar = () => {
         </>
       ) : (
         <>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setOpen(false);
-              router.push("/login");
-            }}
-          >
-            Login
-          </Button>
-          <Button
-            variant="brand"
-            size="sm"
-            onClick={() => {
-              setOpen(false);
-              router.push("/register");
-            }}
-          >
-            Register
-          </Button>
+          {pathname !== "/login" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setOpen(false);
+                router.push("/login");
+              }}
+            >
+              Login
+            </Button>
+          )}
+          {pathname !== "/register" && (
+            <Button
+              variant="brand"
+              size="sm"
+              onClick={() => {
+                setOpen(false);
+                router.push("/register");
+              }}
+            >
+              Register
+            </Button>
+          )}
         </>
       )}
     </div>
